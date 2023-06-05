@@ -1,0 +1,155 @@
+n_train: 1000
+n_dev: 1000
+n_test: 1000 # unused in stage 1 and 2, used in stage 3 for testing
+merror_dim: null
+split_ratio: 0.5
+train:
+#  all: null
+  Z: null
+  M: null
+  N: null
+  _X: null
+  _U: null
+  Y: null
+  _Xall: null
+dev:
+#  all: null
+  Z: null
+  M: null
+  N: null
+  _X: null
+  _U: null
+  Y: null
+  _Xall: null
+test:
+  Z: null
+  M: null
+  N: null
+  _X: null
+  _U: null
+  Y: null
+  _Xall: null
+
+stage_1:
+  n_train: null
+  n_dev: null
+
+  log_lambd_0: null # [0, -10]
+  lambd_mn: null
+  lambd_n: null
+  cme_N: null
+  cme_MN: null
+
+  train:
+#    all: null
+    Z: null
+    M: null
+    N: null
+    _X: null
+    _U: null
+    Y: null
+    _Xall: null
+  dev:
+#    all: null
+    Z: null
+    M: null
+    N: null
+    _X: null
+    _U: null
+    Y: null
+    _Xall: null
+#  test:
+##    all: null
+#    Z: null
+#    M: null
+#    N: null
+#    _X: null
+#    _U: null
+#    Y: null
+
+stage_2:
+  learn_lambd_x: False
+  Chi_lim: [-0.5, 0.5]
+  n_Chi: 500 # number of Chi's used in dataset creation
+  label_cutoff: 1.0 # proportion of standard deviation admitted
+  n_train: 2000
+  n_dev: 1000
+  n_test: 1000
+  reg_param: 0.
+  batch_size: 64
+  lr: 0.1
+  num_epochs: 40
+
+  Z1: null
+  N1: null
+  M1: null
+  _X1: null
+  sig_Z1: null
+  cme_MN: null
+  cme_N: null
+
+  train:
+#    all: null
+    Chi: null
+    Z: null
+    labels: null
+    fitted_x: null
+
+  dev:
+#    all: null
+    Chi: null
+    Z: null
+    labels: null
+
+  test:
+#    all: null
+    Chi: null
+    Z: null
+    labels: null
+
+stage_3:
+  log_xi_0: null
+  xi: null
+  lambd_x: null
+  cme_X: null
+
+  n_train: null
+  n_dev: null
+  n_test: null # unused in stage 1 and 2, used in stage 3 for testing
+
+  log_lambd_0: null
+  lambd_mn: null
+  lambd_n: null
+  cme_N: null
+  cme_MN: null
+
+  train:
+#    all: null
+    Z: null
+    M: null
+    N: null
+    _X: null
+    fitted_X: null
+    _U: null
+    Y: null
+    _Xall: null
+  dev:
+#    all: null
+    Z: null
+    M: null
+    N: null
+    _X: null
+    _U: null
+    Y: null
+    _Xall: null
+#  test:
+##    all: null
+#    Z: null
+#    M: null
+#    N: null
+#    _X: null
+#    _U: null
+#    Y: null
+
+
+

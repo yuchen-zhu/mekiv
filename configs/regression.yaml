@@ -1,0 +1,6 @@
+'train_data': null
+'test_data': null
+'loss_func': 'loss_func'
+'num_epochs': 5
+'batch_size': 64
+'num_points_to_visualize': 500
