@@ -1,0 +1,15 @@
+n_repeat: 30
+
+train_params:
+  split_ratio: 0.5
+  lambda: [0, -10]
+  xi: [0, -10]
+
+data:
+  data_name: "demand"  # {np, linear, demand}
+  data_size: 2000  # [1000, 5000, 10000]
+  rho: [0.25, 0.5, 0.9]  # [0.25, 0.5, 0.9] # confounding level
+  m_scale: [0.5, 1., 2.]  # [0.5, 1., 2.] # times ground truth std
+  n_scale: null
+  bias: 0. # merror bias
+  merror_func_str: ["multi_gaussian"]  # {gaussian, uniform, multi_gaussian}

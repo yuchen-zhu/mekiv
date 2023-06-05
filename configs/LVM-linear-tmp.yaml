@@ -1,0 +1,14 @@
+n_repeat: 10
+data:
+  data_name: "sigmoid"  # {np, linear, demand}
+  data_size: 2000  # [2000, 5000, 10000]
+  m_scale: [0.5, 1., 2.]  # [0.5, 1., 2.] # times ground truth std
+  n_scale: null
+  bias: 0. # merror bias
+  merror_func_str: "multi_gaussian"  # {gaussian, multi_gaussian}
+train_params:
+  n_epochs: 500
+  batch_size: 100
+  from_checkpt: null # null # model03-21-22-44-30.pt
+  sample_size_from_pxz: 100
+
