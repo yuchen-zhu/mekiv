@@ -18,7 +18,7 @@ The main conditions for consistent estimation for $f$ are listed. Please refer t
 * $Y = f(X) + \epsilon$, and $\mathbb{E}[\epsilon | Z] = 0$. Additive noise model for the causal effect curve.
 * $M = X + \Delta M$, $N = X + \Delta N$. Measurement noises are added.
 * $\mathbb E[\Delta M | X, \Delta N] = 0$. The added noise on one measurement is uncorrelated with the true treatment; the two added noises are uncorrelated with each other.
-* $X\perp \!\!\! \perp \Delta N$, $\mathbb E [\epsilon | \Delta N] = 0$. The added noise on $N$ is independent of $X$ and uncorrelated with $\epsilon$.
+* $X\perp \Delta N$, $\mathbb E [\epsilon | \Delta N] = 0$. The added noise on $N$ is independent of $X$ and uncorrelated with $\epsilon$.
 
 
 # Installation
