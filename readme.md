@@ -2,7 +2,7 @@
 
 This is the official implementation for the publication 
 
-Yuchen Zhu, Limor Gultchin, Arthur Gretton, Matt Kusner, Ricardo Silva **Causal Inference with Treatment Measurement Error: A Nonparametric Instrumental Variable Approach.** In Uncertainty in Artificial Intelligence (UAI) 2022.
+Yuchen Zhu, Limor Gultchin, Arthur Gretton, Matt Kusner, Ricardo Silva. **Causal Inference with Treatment Measurement Error: A Nonparametric Instrumental Variable Approach.** In Uncertainty in Artificial Intelligence (UAI) 2022.
 
 The paper can be downloaded [here](https://arxiv.org/abs/2206.09186). 
 
