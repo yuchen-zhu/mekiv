@@ -1,40 +1,38 @@
-import yaml
-import logging
-from typing import Optional
-import click
-from pathlib import Path
-import uuid
-from shutil import copyfile, make_archive
-import os
-from os import PathLike
 import datetime
+import logging
+import os
+from pathlib import Path
+from shutil import make_archive
 
+import click
+import yaml
 
-from miv.utils.custom_logging import configure_logger
 from miv.experiments import experiments
+from miv.utils.custom_logging import configure_logger
 
-
-DUMP_DIR = Path.cwd().joinpath('dumps')
-SRC_DIR = Path.cwd().joinpath('miv')
+DUMP_DIR = Path.cwd().joinpath("dumps")
+SRC_DIR = Path.cwd().joinpath("miv")
 
 SLACK_URL = None
 NUM_GPU = None
-if Path.cwd().joinpath('miv/config.yaml').exists():
-    SLACK_URL = yaml.load(Path.cwd().joinpath('miv/config.yaml').open('r'))['slack']
-    NUM_GPU = yaml.load(Path.cwd().joinpath('miv/config.yaml').open('r')).get('num_gpu', None)
+if Path.cwd().joinpath("miv/config.yaml").exists():
+    SLACK_URL = yaml.load(Path.cwd().joinpath("miv/config.yaml").open("r"))["slack"]
+    NUM_GPU = yaml.load(Path.cwd().joinpath("miv/config.yaml").open("r")).get(
+        "num_gpu", None
+    )
 
 SCRIPT_NAME = Path(__file__).stem
-LOG_DIR = Path.cwd().joinpath(f'logs/{SCRIPT_NAME}')
+LOG_DIR = Path.cwd().joinpath(f"logs/{SCRIPT_NAME}")
 
 logger = logging.getLogger()
 
 
 @click.group()
-@click.argument('config_path', type=click.Path(exists=True))
-@click.option('--debug/--release', default=False)
+@click.argument("config_path", type=click.Path(exists=True))
+@click.option("--debug/--release", default=False)
 @click.pass_context
 def main(ctx, config_path, debug):
-    if(debug):
+    if debug:
         # Change logging level to debug
         logger.setLevel(logging.DEBUG)
         logger.handlers[-1].setLevel(logging.DEBUG)
@@ -128,10 +126,10 @@ def kivmn(ctx, num_thread):
     experiments("KIV_MN", config, dump_dir, num_thread, NUM_GPU)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     configure_logger(SCRIPT_NAME, log_dir=LOG_DIR, webhook_url=SLACK_URL)
     try:
         main(obj={})
-        logger.critical('===== Script completed successfully! =====')
+        logger.critical("===== Script completed successfully! =====")
     except Exception as e:
         logger.exception(e)

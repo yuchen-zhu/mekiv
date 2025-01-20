@@ -38,7 +38,6 @@ class MerrorKIVTrainer:
         self.lambda_n = self.train_params["lambda_n"]
         self.xi = self.train_params["xi"]
         self.n_chi = self.train_params["n_chi"]
-        # self.lambda2 = train_params["lam2"]
         self.split_ratio = self.train_params["split_ratio"]
 
     def split_train_data(self, train_data: TrainDataSet):
