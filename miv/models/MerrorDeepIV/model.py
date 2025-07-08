@@ -3,7 +3,6 @@ from scipy.spatial.distance import cdist
 import torch
 
 from miv.data.data_class import TrainDataSet, TestDataSet
-from miv.models.LVM.model_old import LatentVariableModel
 
 from torch import nn
 

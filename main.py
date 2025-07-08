@@ -65,17 +65,6 @@ def merrorkiv(ctx, num_thread):
 @main.command()
 @click.pass_context
 @click.option("--num_thread", "-t", default=1, type=int)
-def lvm(ctx, num_thread):
-    config = ctx.obj["config"]
-    dump_dir = ctx.obj["dump_dir"]
-    dump_dir = dump_dir.joinpath("lvm")
-    os.mkdir(dump_dir)
-    experiments("LVM", config, dump_dir, num_thread, NUM_GPU)
-
-
-@main.command()
-@click.pass_context
-@click.option("--num_thread", "-t", default=1, type=int)
 def kivoracle(ctx, num_thread):
     config = ctx.obj["config"]
     dump_dir = ctx.obj["dump_dir"]
