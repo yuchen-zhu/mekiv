@@ -9,25 +9,23 @@ import yaml
 from miv.experiments import experiments
 from miv.utils.custom_logging import configure_logger
 
-DUMP_DIR = Path.cwd().joinpath("dumps")
-SRC_DIR = Path.cwd().joinpath("miv")
+CWD = Path.cwd()
+DUMP_DIR = CWD / 'dumps'
+SRC_DIR = CWD / "miv"
+GLOBAL_CONFIG_PATH = CWD / "miv" / "config.yaml"
 
 SLACK_URL = None
 'for sending message to slack'
 NUM_GPU = None
-if Path.cwd().joinpath("miv/config.yaml").exists():
-    SLACK_URL = yaml.load(
-            Path.cwd().joinpath("miv/config.yaml").open("r")
-        )["slack"]
-
-    NUM_GPU = yaml.load(
-            Path.cwd().joinpath("miv/config.yaml").open("r")
-        ).get(
-        "num_gpu", None
+if  GLOBAL_CONFIG_PATH.exists():
+    global_config = yaml.load(
+            GLOBAL_CONFIG_PATH.read_text(encoding='utf-8')
         )
+    SLACK_URL = global_config.get("slack")
+    NUM_GPU = global_config.get("num_gpu")
 
 SCRIPT_NAME = Path(__file__).stem
-LOG_DIR = Path.cwd().joinpath(f"logs/{SCRIPT_NAME}")
+LOG_DIR = CWD / "logs" / SCRIPT_NAME
 
 logger = logging.getLogger()
 
