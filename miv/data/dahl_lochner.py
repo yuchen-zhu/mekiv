@@ -6,7 +6,7 @@ from ..data.merror_funcs import get_merror_func
 from numpy.random import default_rng
 import torch
 from torch import nn
-from miv.util import dotdict
+from miv.utils.util import dotdict
 
 import pickle
 

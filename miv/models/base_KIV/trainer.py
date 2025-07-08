@@ -9,7 +9,7 @@ from sklearn.model_selection import train_test_split
 from miv.data import generate_train_data, generate_test_data, generate_z_test_data
 from miv.data.data_class import TrainDataSet, TrainDataSetTorch
 from miv.models.base_KIV.model import KernelIVModel
-from miv.util import dotdict, make_dotdict
+from miv.utils.util import dotdict, make_dotdict
 
 logger = logging.getLogger()
 

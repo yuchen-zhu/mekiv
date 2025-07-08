@@ -1,4 +1,4 @@
-from miv.util import dotdict
+from miv.utils.util import dotdict
 
 from miv.data.demand_design import generate_test_demand_design, generate_train_demand_design, generate_z_test_demand_design
 from miv.data.sigmoid_design import generate_test_sigmoid_design, generate_train_sigmoid_design, generate_z_test_sigmoid_design

@@ -1,6 +1,6 @@
 import torch
 from torch import tensor, optim
-from miv.util import dotdict
+from miv.utils.util import dotdict
 import numpy as np
 from miv.data.data_class import StageMDataSetTorch, TrainDataSet
 from miv.models.MerrorKIV.model import MerrorKIVModel

@@ -1,7 +1,7 @@
 from typing import Optional
 import numpy as np
 import torch
-from miv.util import dotdict
+from miv.utils.util import dotdict
 
 
 class TrainDataSet(dotdict):

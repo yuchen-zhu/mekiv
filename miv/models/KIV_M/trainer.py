@@ -1,7 +1,7 @@
 from typing import Dict, Any, Optional
 from pathlib import Path
 import logging
-from miv.util import dotdict, make_dotdict
+from miv.utils.util import dotdict, make_dotdict
 from miv.models.base_KIV.trainer import BaseKIVTrainer
 
 logger = logging.getLogger()

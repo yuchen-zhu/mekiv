@@ -10,13 +10,11 @@ from numpy.random import default_rng
 
 
 from miv.data import generate_train_data, generate_test_data
-from miv.util import dotdict, make_dotdict
+from miv.utils.util import dotdict, make_dotdict
 from miv.data.data_class import TrainDataSet, TrainDataSetTorch, StageMDataSetTorch
 from miv.models.MerrorKIV.model import MerrorKIVModel
 from miv.models.MerrorKIV.stage_m_utils import create_stage_M_raw_data, prepare_stage_M_data
 from miv.models.MerrorKIV.stage_m import StageMModel, stage_m_train
-
-# from miv.designs import datasets
 
 logger = logging.getLogger()
 

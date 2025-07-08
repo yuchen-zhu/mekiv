@@ -1,5 +1,5 @@
 import numpy as np
-from miv.util import dotdict, fns
+from miv.utils.util import dotdict, fns
 from scipy import stats
 import torch
 from miv.data import sim_dgp

@@ -3,10 +3,10 @@ import torch
 from torch import optim, tensor
 import numpy as np
 import matplotlib.pyplot as plt
-# from miv.util import fill_in_args, compute_rbf_kernel, cme_tuning, curate_data, \
+# from miv.utils.util import fill_in_args, compute_rbf_kernel, cme_tuning, curate_data, \
 #     throw_away_outliers_with_labelrealparts, shuffle_, get_K
-from miv.util import *
-from miv.general_util import get_median_inter_mnist
+from miv.utils.util import *
+from miv.utils.general_util import get_median_inter_mnist
 import argparse
 
 

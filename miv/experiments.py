@@ -6,7 +6,7 @@ import ray
 import logging
 import torch
 
-from miv.util import grid_search_dict, make_dotdict, dotdict
+from miv.utils.util import grid_search_dict, make_dotdict, dotdict
 from miv.models.MerrorKIV.trainer import MerrorKIVTrainer
 from miv.models.KIV_M.trainer import KIV_MTrainer
 from miv.models.KIV_N.trainer import KIV_NTrainer

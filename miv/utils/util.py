@@ -1,11 +1,10 @@
 import numpy as np
 from numpy import concatenate as cat
 import os
-PROJECT_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 import pickle
 import copy
 import yaml
-from miv.general_util import _sqdist, get_median_inter_mnist
+from miv.utils.general_util import _sqdist, get_median_inter_mnist
 from scipy.optimize import minimize, fmin_bfgs, fmin_cg, fmin_powell
 import seaborn as sns
 import matplotlib.pyplot as plt

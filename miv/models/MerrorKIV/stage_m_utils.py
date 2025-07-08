@@ -3,7 +3,7 @@ from numpy.random import default_rng
 from miv.data.data_class import StageMDataSet, StageMDataSetTorch
 import torch
 from torch import tensor
-from miv.util import dotdict
+from miv.utils.util import dotdict
 
 
 def sample_from_khat(sample_size, sigma):

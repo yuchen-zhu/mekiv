@@ -11,12 +11,15 @@ import numpy as np
 from numpy import concatenate as cat
 import pandas as pd
 import os
-from util import gen_discrete_factor, PROJECT_ROOT
+from util import gen_discrete_factor
 import seaborn as sns
 import matplotlib.pyplot as plt
 from os.path import join as path_cat
 import argparse
 import pickle as pkl
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parent / '..'
 
 # hyperparameters
 data_size = 10000
