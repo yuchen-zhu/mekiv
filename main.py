@@ -3,7 +3,6 @@ import logging
 import os
 from pathlib import Path
 from shutil import make_archive
-
 import click
 import yaml
 
@@ -14,18 +13,23 @@ DUMP_DIR = Path.cwd().joinpath("dumps")
 SRC_DIR = Path.cwd().joinpath("miv")
 
 SLACK_URL = None
+'for sending message to slack'
 NUM_GPU = None
 if Path.cwd().joinpath("miv/config.yaml").exists():
-    SLACK_URL = yaml.load(Path.cwd().joinpath("miv/config.yaml").open("r"))["slack"]
-    NUM_GPU = yaml.load(Path.cwd().joinpath("miv/config.yaml").open("r")).get(
+    SLACK_URL = yaml.load(
+            Path.cwd().joinpath("miv/config.yaml").open("r")
+        )["slack"]
+
+    NUM_GPU = yaml.load(
+            Path.cwd().joinpath("miv/config.yaml").open("r")
+        ).get(
         "num_gpu", None
-    )
+        )
 
 SCRIPT_NAME = Path(__file__).stem
 LOG_DIR = Path.cwd().joinpath(f"logs/{SCRIPT_NAME}")
 
 logger = logging.getLogger()
-
 
 @click.group()
 @click.argument("config_path", type=click.Path(exists=True))
@@ -69,17 +73,6 @@ def lvm(ctx, num_thread):
     dump_dir = dump_dir.joinpath("lvm")
     os.mkdir(dump_dir)
     experiments("LVM", config, dump_dir, num_thread, NUM_GPU)
-
-
-# @main.command()
-# @click.pass_context
-# @click.option("--num_thread", "-t", default=1, type=int)
-# def oraclekiv(ctx, num_thread):
-#     config = ctx.obj["config"]
-#     dump_dir = ctx.obj["dump_dir"]
-#     dump_dir = dump_dir.joinpath("oraclekiv")
-#     os.mkdir(dump_dir)
-#     experiments("oracle_KIV", config, dump_dir, num_thread, NUM_GPU)
 
 
 @main.command()
