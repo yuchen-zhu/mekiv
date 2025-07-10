@@ -61,6 +61,7 @@ class BaseKIVTrainer:
         oos_result : float
             The performance of model evaluated by oos
         """
+        print(f'n_scale: {self.data_config['n_scale']}')
         train_data = generate_train_data(rand_seed=rand_seed, **self.data_config)
         test_data = generate_test_data(**self.data_config)
         # z_test_data = generate_z_test_data(**self.data_config)

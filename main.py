@@ -19,7 +19,8 @@ SLACK_URL = None
 NUM_GPU = None
 if  GLOBAL_CONFIG_PATH.exists():
     global_config = yaml.load(
-            GLOBAL_CONFIG_PATH.read_text(encoding='utf-8')
+            GLOBAL_CONFIG_PATH.read_text(encoding='utf-8'),
+            Loader=yaml.SafeLoader
         )
     SLACK_URL = global_config.get("slack")
     NUM_GPU = global_config.get("num_gpu")
@@ -29,11 +30,12 @@ LOG_DIR = CWD / "logs" / SCRIPT_NAME
 
 logger = logging.getLogger()
 
-@click.group()
-@click.argument("config_path", type=click.Path(exists=True))
+@click.command()
+@click.argument("config_path", type=click.Path(exists=True, path_type=Path))
+@click.argument("method", type=str)
 @click.option("--debug/--release", default=False)
-@click.pass_context
-def main(ctx, config_path, debug):
+@click.option("--num_thread", default=1)
+def main(config_path: Path, method: str, debug: bool, num_thread: int):
     if debug:
         # Change logging level to debug
         logger.setLevel(logging.DEBUG)
@@ -41,72 +43,33 @@ def main(ctx, config_path, debug):
         logger.debug("debug")
 
     foldername = str(datetime.datetime.now().strftime("%m-%d-%H-%M-%S"))
-    dump_dir = DUMP_DIR.joinpath(foldername)
+    dump_dir = DUMP_DIR / foldername
     os.mkdir(dump_dir)
-    with open(config_path) as f:
-        config = yaml.load(f, Loader=yaml.FullLoader)
-    ctx.obj["dump_dir"] = dump_dir
-    ctx.obj["config"] = config
-    yaml.dump(config, open(dump_dir.joinpath("configs.yaml"), "w"))
-    make_archive(dump_dir.joinpath("src"), "zip", root_dir=SRC_DIR)
+    config = yaml.load(
+            config_path.read_text(encoding='utf-8'),
+            Loader=yaml.SafeLoader
+            )
 
 
-@main.command()
-@click.pass_context
-@click.option("--num_thread", "-t", default=1, type=int)
-def merrorkiv(ctx, num_thread):
-    config = ctx.obj["config"]
-    dump_dir = ctx.obj["dump_dir"]
-    dump_dir = dump_dir.joinpath("merrorkiv")
-    os.mkdir(dump_dir)
-    experiments("MerrorKIV", config, dump_dir, num_thread, NUM_GPU)
+    yaml.dump(config, open(dump_dir / "configs.yaml", "w"))
+    make_archive(dump_dir / "src", "zip", root_dir=SRC_DIR)
 
+    if method not in ('MerrorKIV', 'KIV_oracle', 'KIV_M', 'KIV_N', 'KIV_MN'):
+        raise ValueError("Choose Method from the following: 'MerrorKIV', 'KIV_oracle', 'KIV_M', 'KIV_N', 'KIV_MN'")
+    else:
+        dump_dir = dump_dir / method
+        os.mkdir(dump_dir)
+        experiments(alg_name=method,
+                    configs=config,
+                    dump_dir=dump_dir,
+                    num_cpus=num_thread,
+                    num_gpu=NUM_GPU)
 
-@main.command()
-@click.pass_context
-@click.option("--num_thread", "-t", default=1, type=int)
-def kivoracle(ctx, num_thread):
-    config = ctx.obj["config"]
-    dump_dir = ctx.obj["dump_dir"]
-    dump_dir = dump_dir.joinpath("kivoracle")
-    os.mkdir(dump_dir)
-    experiments("KIV_oracle", config, dump_dir, num_thread, NUM_GPU)
-
-
-@main.command()
-@click.pass_context
-@click.option("--num_thread", "-t", default=1, type=int)
-def kivm(ctx, num_thread):
-    config = ctx.obj["config"]
-    dump_dir = ctx.obj["dump_dir"]
-    dump_dir = dump_dir.joinpath("kivm")
-    os.mkdir(dump_dir)
-    experiments("KIV_M", config, dump_dir, num_thread, NUM_GPU)
-
-
-@main.command()
-@click.pass_context
-@click.option("--num_thread", "-t", default=1, type=int)
-def kivn(ctx, num_thread):
-    config = ctx.obj["config"]
-    dump_dir = ctx.obj["dump_dir"]
-    dump_dir = dump_dir.joinpath("kivn")
-    os.mkdir(dump_dir)
-    experiments("KIV_N", config, dump_dir, num_thread, NUM_GPU)
-
-
-@main.command()
-@click.pass_context
-@click.option("--num_thread", "-t", default=1, type=int)
-def kivmn(ctx, num_thread):
-    config = ctx.obj["config"]
-    dump_dir = ctx.obj["dump_dir"]
-    dump_dir = dump_dir.joinpath("kivmn")
-    os.mkdir(dump_dir)
-    experiments("KIV_MN", config, dump_dir, num_thread, NUM_GPU)
 
 
 if __name__ == "__main__":
+    print("hello")
+    raise ValueError
     configure_logger(SCRIPT_NAME, log_dir=LOG_DIR, webhook_url=SLACK_URL)
     try:
         main(obj={})

@@ -51,6 +51,8 @@ class MerrorKIVTrainer:
 
         train_1st_data, train_2nd_data = TrainDataSet(**train_1st_data), TrainDataSet(**train_2nd_data)
         return train_1st_data, train_2nd_data
+    
+
 
     def train(self, rand_seed: int = 42, verbose: int = 0):
         """

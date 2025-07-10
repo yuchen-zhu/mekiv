@@ -19,7 +19,7 @@ import argparse
 import pickle as pkl
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parent / '..'
+PROJECT_ROOT = Path(__file__).resolve().parent / '..' / '..'
 
 # hyperparameters
 data_size = 10000

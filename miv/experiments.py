@@ -74,6 +74,7 @@ def experiments(alg_name: str,
 
     for dump_name, data_param in grid_search_dict(org_data_config):
         dump_name = org_data_config["data_name"] + "_" + dump_name
+        print(f"n_scale: {org_data_config['n_scale']}")
         # breakpoint()
         one_dump_dir = dump_dir.joinpath(dump_name)
         os.mkdir(one_dump_dir)
