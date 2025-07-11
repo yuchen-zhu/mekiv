@@ -6,7 +6,7 @@ from scipy.spatial.distance import cdist
 from sklearn.model_selection import train_test_split
 
 
-from miv.data import generate_train_data, generate_test_data, generate_z_test_data
+from miv.data import load_data
 from miv.data.data_class import TrainDataSet, TrainDataSetTorch
 from miv.models.base_KIV.model import KernelIVModel
 from miv.utils.util import dotdict, make_dotdict
@@ -61,10 +61,9 @@ class BaseKIVTrainer:
         oos_result : float
             The performance of model evaluated by oos
         """
-        print(f'n_scale: {self.data_config['n_scale']}')
-        train_data = generate_train_data(rand_seed=rand_seed, **self.data_config)
-        test_data = generate_test_data(**self.data_config)
-        # z_test_data = generate_z_test_data(**self.data_config)
+
+        train_data, test_data = load_data(data_config=self.data_config, rand_seed=rand_seed)
+
         train_1st_data, train_2nd_data = self.split_train_data(train_data)
 
         # get stage1 data

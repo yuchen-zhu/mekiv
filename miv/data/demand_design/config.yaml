@@ -1,0 +1,15 @@
+train:
+  X_hidden: X_hidden0
+  X_obs: null
+  covariate: covariate0,covariate1
+  Z: Z0, Z1, Z2
+  M: M0
+  N: N0
+  Y: Y0
+  Y_struct: Y_struct0
+
+test:
+  X_all: X_all0
+  covariate: covariate0, covariate1
+  Y_struct: Y_struct0
+

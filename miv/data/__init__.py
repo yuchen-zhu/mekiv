@@ -37,54 +37,74 @@ def load_data(data_config, rand_seed: int = 42):
     if data_name  in ['linear', 'sigmoid', 'demand', 'linear_cp']:
         train_data = generate_train_data(rand_seed=rand_seed, **data_config)
         test_data = generate_test_data(**data_config)
+        return train_data, test_data
 
     else:
         data_dir = Path(__file__).resolve().parent
-        data_path = data_dir / data_name / 'data.csv'
+        train_path = data_dir / data_name / 'train.csv'
+        test_path = data_dir / data_name / 'test.csv'
         config_path = data_dir / data_name / 'config.yaml'
 
-        if data_path.exists and config_path.exists:
-            config = yaml.safe_load(stream=config_path.read_text())
-            all_dat = pd.read_csv(data_path).rename(columns=config['column_names'])
+        required_paths = [train_path, test_path, config_path]
+        exist_paths = map(Path.exists, required_paths)
 
-            train = all_dat.loc['train']
-
-            covariate_labels = [covariate.strip() for covariate in config['covariates'].split(',')]
-            X_obs_labels = [x.strip() for x in config['X_obs'].split(',')]
-
-            train_data = TrainDataSet(
-                X_hidden=None, 
-                X_obs=train[X_obs_labels].values if len(X_obs_labels) >= 0 else None,
-                covariate=train[covariate_labels].values if len(covariate_labels) >= 0 else None,
-                M=train[['M']].values,
-                N=train[['N']].values,
-                Z=train[['Z']].values,
-                Y = train[['Y']].values
+        if not all(exist_paths):
+            error_message = "Missing required files: "
+            error_message += ', '.join(
+                p.name for p, exists in zip(required_paths, exist_paths)
+                if not exists
             )
+            raise ValueError(error_message)
 
-            test = all_dat.loc['test']
+        config = yaml.safe_load(stream=config_path.read_text())
+        train_config = config["train"]
+        test_config = config["test"]
+        train = pd.read_csv(train_path)
+        test = pd.read_csv(test_path)
 
-            X_hidden_labels = [x.strip() for x in config['X_hidden'].split(',')]
-            if len(X_hidden_labels) != 1:
-                raise ValueError('This implementation only accommodates 1 mismeasured treatment.')
-            X_all_labels = X_hidden_labels + X_obs_labels
-            test_data = TestDataSet(
-                X_all=test[X_all_labels].values,
-                covariate=test[covariate_labels].values,
-                Y_struct=test[['Y_struct']].values
-            )
+        train_labels = {
+            key: [
+                label
+                for label in map(str.strip, train_config[key].split(","))
+                if len(label) > 0
+            ]
+            for key in train_config.keys()
+            if train_config[key] is not None
+        }
+        if len(train_labels['X_hidden']) != 1:
+            raise ValueError('This implementation only accommodates 1 mismeasured treatment.')
 
-            return train_data, test_data
 
-        elif data_path.exists and not config_path.exists:
-            raise ValueError(f"User needs to add a config file for processing data.")
-        elif not data_path.exist and config_path.exists:
-            raise ValueError(f"User needs to add the data csv file.")
-        else:
-            raise ValueError(f"data name {data_name} does not exist, please implement its simulation or add its data to {data_dir}.")
+        test_labels = {
+            key: [
+                label 
+                for label in map(str.strip, test_config[key].split(","))
+                if len(label) > 0
+            ]
+            for key in test_config.keys()
+            if test_config[key] is not None
+        }
 
-        
-    return train_data, test_data
+        train_data = TrainDataSet(
+            X_hidden=train[train_labels['X_hidden']].values if train_labels.get("X_hidden") is not None else None, 
+            X_obs=train[train_labels['X_obs']].values if train_labels.get("X_obs") is not None else None,
+            covariate=train[train_labels['covariate']].values if train_labels.get("covariate") is not None else None,
+            M=train[train_labels['M']].values if train_labels.get("M") is not None else None,
+            N=train[train_labels['N']].values if train_labels.get("N") is not None else None,
+            Z=train[train_labels['Z']].values if train_labels.get("Z") is not None else None,
+            Y=train[train_labels['Y']].values if train_labels.get("Y") is not None else None,
+            Y_struct=train[train_labels['Y_struct']].values if train_labels.get("Y_struct") is not None else None,
+        )
+
+
+        test_data = TestDataSet(
+            X_all=test[test_labels['X_all']].values if test_labels.get("X_all") is not None else None,
+            covariate=test[test_labels['covariate']].values if test_labels.get("covariate") is not None else None,
+            Y_struct=test[test_labels['Y_struct']].values if test_labels.get("Y_struct") is not None else None,
+        )
+
+        return train_data, test_data
+    
 
 
 def generate_train_data(data_name: str, rand_seed: int, **args) -> TrainDataSet:

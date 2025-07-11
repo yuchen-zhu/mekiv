@@ -9,7 +9,7 @@ from torch import tensor
 from numpy.random import default_rng
 
 
-from miv.data import generate_train_data, generate_test_data
+from miv.data import load_data
 from miv.utils.util import dotdict, make_dotdict
 from miv.data.data_class import TrainDataSet, TrainDataSetTorch, StageMDataSetTorch
 from miv.models.MerrorKIV.model import MerrorKIVModel
@@ -68,9 +68,9 @@ class MerrorKIVTrainer:
         oos_result : float
             The performance of model evaluated by oos
         """
-
-        train_data = generate_train_data(rand_seed=rand_seed, **self.data_config)
-        test_data = generate_test_data(**self.data_config)
+        train_data, test_data = load_data(data_config=self.data_config, rand_seed=rand_seed)
+        # train_data = generate_train_data(rand_seed=rand_seed, **self.data_config)
+        # test_data = generate_test_data(**self.data_config)
         train_1st_data, train_2nd_data = self.split_train_data(train_data)
 
         # get stage1 data
