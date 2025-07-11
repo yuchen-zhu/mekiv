@@ -51,7 +51,10 @@ def main(config_path: Path, method: str, debug: bool, num_thread: int):
             )
 
 
-    yaml.dump(config, open(dump_dir / "configs.yaml", "w"))
+    (dump_dir / "configs.yaml").write_text(
+        yaml.dump(config), 
+        encoding='utf-8'
+    )
     make_archive(dump_dir / "src", "zip", root_dir=SRC_DIR)
 
     if method not in ('MerrorKIV', 'KIV_oracle', 'KIV_M', 'KIV_N', 'KIV_MN'):
@@ -68,8 +71,6 @@ def main(config_path: Path, method: str, debug: bool, num_thread: int):
 
 
 if __name__ == "__main__":
-    print("hello")
-    raise ValueError
     configure_logger(SCRIPT_NAME, log_dir=LOG_DIR, webhook_url=SLACK_URL)
     try:
         main(obj={})
