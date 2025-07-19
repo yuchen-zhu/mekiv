@@ -20,18 +20,20 @@ def generate_test_linear_cp_design() -> TestDataSet:
     x = np.linspace(0, 1, 100)
     y = f(x)
 
-    test_data = TestDataSet(X_all=x[:, np.newaxis],
-                            Y_struct=y[:, np.newaxis],
-                            covariate=None)
+    test_data = TestDataSet(
+        X_all=x[:, np.newaxis], Y_struct=y[:, np.newaxis], covariate=None
+    )
     return test_data
 
 
-def generate_train_linear_cp_design(data_size: int,
-                                  merror_func_str: str,
-                                  m_scale: float,
-                                  n_scale: float,
-                                  bias: float,
-                                  rand_seed: int = 42) -> TrainDataSet:
+def generate_train_linear_cp_design(
+    data_size: int,
+    merror_func_str: str,
+    m_scale: float,
+    n_scale: float,
+    bias: float,
+    rand_seed: int = 42,
+) -> TrainDataSet:
     """
 
     Parameters
@@ -72,14 +74,16 @@ def generate_train_linear_cp_design(data_size: int,
     # outcome = f(x) + 0.1*u
     M, N = merror_func(X_hidden=x, scale_m=m_scale, scale_n=n_scale, bias=bias)
 
-    train_data = TrainDataSet(X_hidden=x,
-                              X_obs=None,
-                              covariate=None,
-                              M=M,
-                              N=N,
-                              Z=z,
-                              Y_struct=structural,
-                              Y=outcome)
+    train_data = TrainDataSet(
+        X_hidden=x,
+        X_obs=None,
+        covariate=None,
+        M=M,
+        N=N,
+        Z=z,
+        Y_struct=structural,
+        Y=outcome,
+    )
     return train_data
 
 
@@ -105,6 +109,5 @@ def generate_z_test_linear_cp_design() -> ZTestDataSet:
         outcome.append(out)
     Z = ivs[:, np.newaxis]
     outcomes = np.array(outcome)[:, np.newaxis]
-    z_test_data = ZTestDataSet(Z=Z,
-                               Y=outcomes)
+    z_test_data = ZTestDataSet(Z=Z, Y=outcomes)
     return z_test_data

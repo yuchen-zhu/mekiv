@@ -14,13 +14,11 @@ from miv.models.KIV_MN.trainer import KIV_MNTrainer
 from miv.models.KIV_X.trainer import KIV_XTrainer
 from miv.models.base_KIV.trainer import BaseKIVTrainer
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 def get_trainer(alg_name: str):
-    if alg_name == "LVM":
-        raise NotImplementedError
-    elif alg_name == "MerrorKIV":
+    if alg_name == "MerrorKIV":
         return MerrorKIVTrainer
     elif alg_name == "KIV_M":
         return KIV_MTrainer
@@ -30,116 +28,82 @@ def get_trainer(alg_name: str):
         return KIV_MNTrainer
     elif alg_name == "KIV_oracle":
         return KIV_XTrainer
-    # elif alg_name == "oracle_KIV":
-    #     return KernelIVTrainer
     else:
-        raise ValueError(f"invalid algorithm name {alg_name}")
+        raise NotImplementedError(f"invalid algorithm name {alg_name}")
 
 
-def run_one(alg_name: str, data_param: Dict[str, Any], train_config: Dict[str, Any],
-            use_gpu: bool, dump_dir_root: Optional[Path], experiment_id: int, verbose: int):
+def run_one(
+    alg_name: str,
+    data_param: Dict[str, Any],
+    train_config: Dict[str, Any],
+    experiment_id: int
+):
     Train_cls = get_trainer(alg_name)
-    one_dump_dir = None
-    if dump_dir_root is not None:
-        one_dump_dir = dump_dir_root.joinpath(f"{experiment_id}/")
-        os.mkdir(one_dump_dir)
-    trainer = Train_cls(data_param, train_config, use_gpu, one_dump_dir)
-    out = trainer.train(experiment_id, verbose)
-    # breakpoint()
+    trainer = Train_cls(
+        data_configs=data_param, 
+        train_params=train_config
+    )
+    out = trainer.train(
+        rand_seed=experiment_id
+        
+    )
     return out
 
 
-def experiments(alg_name: str,
-                configs: Dict[str, Any],
-                dump_dir: Path,
-                num_cpus: int, num_gpu: Optional[int]):
+def experiments(
+    alg_name: str,
+    configs: Dict[str, Any],
+    dump_dir: Path,
+    num_cpus: int,
+    num_gpus: Optional[int],
+):
     train_config = configs["train_params"]
     org_data_config = configs["data"]
     n_repeat: int = configs["n_repeat"]
 
-    if num_cpus <= 1:
-        ray.init(local_mode=True, num_gpus=num_gpu)
-        verbose: int = 2
+    ray.init(num_cpus=num_cpus, num_gpus=num_gpus)
+
+    use_gpu = (0 if num_gpus is None else num_gpus) > 0
+
+    if use_gpu and torch.cuda.is_available():
+        remote_run = ray.remote(num_gpus=num_gpus, max_calls=1)(run_one)
     else:
-        ray.init(num_cpus=num_cpus, num_gpus=num_gpu)
-        verbose: int = 0
+        remote_run = ray.remote(run_one)
 
-    # use_gpu: bool = (num_gpu is not None)
-    use_gpu = False
-
-    # if use_gpu and torch.cuda.is_available():
-    #     remote_run = ray.remote(num_gpus=1, max_calls=1)(run_one)
-    # else:
-    remote_run = ray.remote(run_one)
 
     for dump_name, data_param in grid_search_dict(org_data_config):
         dump_name = org_data_config["data_name"] + "_" + dump_name
-        # breakpoint()
-        one_dump_dir = dump_dir.joinpath(dump_name)
+
+        tasks = [
+            remote_run.remote(
+                    alg_name=alg_name,
+                    data_param=data_param,
+                    train_config=train_config,
+                    experiment_id=idx
+            )
+            for idx in range(n_repeat)
+        ]
+
+        results = ray.get(tasks)
+
+        one_dump_dir = dump_dir / dump_name
         os.mkdir(one_dump_dir)
-        tasks = [remote_run.remote(alg_name, data_param, train_config,
-                                   use_gpu, one_dump_dir, idx, verbose) for idx in range(n_repeat)]
-        # breakpoint()
-        res = ray.get(tasks)
-        process_res(res, one_dump_dir)
-        # breakpoint()
-        # np.savetxt(one_dump_dir.joinpath("results.csv"), X=np.array(res))
-        # np.savetxt(one_dump_dir.joinpath("mse.csv"), X=mse_array)
-        # np.savetxt(one_dump_dir.joinpath("test_input.csv"), X=test_input)
-        # np.savetxt(one_dump_dir.joinpath("test_pred.csv"), X=test_pred)
-        # np.savetxt(one_dump_dir.joinpath("test_label.csv"), X=test_label)
+
+        assert all(len(result) == 4 for result in results)
+
+        mse_list = [
+            mse for mse, _, _, _ in results
+        ]
+        test_pred = [
+            test_preds.flatten() for _, _, test_preds, _ in results
+        ]
+
+        np.savetxt(one_dump_dir / "mse.csv", X=np.array(mse_list))
+        np.savetxt(one_dump_dir / "test_pred.csv", X=np.array(test_pred).T)
+        np.savetxt(one_dump_dir / "test_input.csv", X=results[0][1])
+        np.savetxt(one_dump_dir / "test_label.csv", X=results[0][3])
+
+
         logger.critical(f"{dump_name} ended")
 
     ray.shutdown()
-
-
-def process_res(res, one_dump_dir):
-    """
-    process results to a format that we can save
-    :param res: list of tuples. Each tuple: (mses, test_inputs, test_preds, test_labels)
-            one_dump_dir: the dir to dump the results
-    :return: a list of mse, an array of test inputs and an array of test preds
-    """
-    # breakpoint()
-    assert (len(res[0]) == 4)
-    if isinstance(res[0][0], dict):
-        mse_list, z_mse_list = [], []
-        test_input, z_test_input = res[0][1]['x'], res[0][1]['z']
-        test_pred, z_test_pred = [], []
-        test_label, z_test_label = res[0][3]['x'], res[0][3]['z']
-        for tup in res:
-            mse_list.append(tup[0]['x'])
-            # z_mse_list.append(tup[0]['z'])
-            z_mse_list.append(np.array([1.]))
-            test_pred.append(tup[2]['x'].flatten())
-            # z_test_pred.append(tup[2]['z'].flatten())
-            z_test_pred.append(np.array([1.]))
-
-        np.savetxt(one_dump_dir.joinpath("mse.csv"), X=np.array(mse_list))
-        # np.savetxt(one_dump_dir.joinpath("z_mse.csv"), X=np.array(z_mse_list))
-        np.savetxt(one_dump_dir.joinpath("test_input.csv"), X=test_input)
-        # np.savetxt(one_dump_dir.joinpath("z_test_input.csv"), X=z_test_input)
-        np.savetxt(one_dump_dir.joinpath("test_pred.csv"), X=np.array(test_pred).T)
-        # np.savetxt(one_dump_dir.joinpath("z_test_pred.csv"), X=np.array(z_test_pred).T)
-        # breakpoint()
-        np.savetxt(one_dump_dir.joinpath("test_label.csv"), X=test_label)
-        # np.savetxt(one_dump_dir.joinpath("z_test_label.csv"), X=z_test_label)
-    else:
-        mse_list = []
-        test_input = res[0][1]
-        test_pred = []
-        test_label = res[0][3]
-        for tup in res:
-            mse_list.append(tup[0])
-
-            test_pred.append(tup[2].flatten())
-
-
-        np.savetxt(one_dump_dir.joinpath("mse.csv"), X=np.array(mse_list))
-
-        np.savetxt(one_dump_dir.joinpath("test_input.csv"), X=test_input)
-
-        np.savetxt(one_dump_dir.joinpath("test_pred.csv"), X=np.array(test_pred).T)
-
-        np.savetxt(one_dump_dir.joinpath("test_label.csv"), X=test_label)
-

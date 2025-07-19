@@ -36,7 +36,7 @@ class ImageFeature(nn.Module):
             nn.ReLU(True),
             nn.Linear(128, 32),  # B, z_dim*2
             nn.BatchNorm1d(32),
-            nn.ReLU()
+            nn.ReLU(),
         )
 
     def forward(self, data):
@@ -45,30 +45,34 @@ class ImageFeature(nn.Module):
 
 
 def build_net_for_dsprite():
-    response_net = nn.Sequential(spectral_norm(nn.Linear(64 * 64, 1024)),
-                                 nn.ReLU(),
-                                 spectral_norm(nn.Linear(1024, 512)),
-                                 nn.ReLU(),
-                                 nn.BatchNorm1d(512),
-                                 spectral_norm(nn.Linear(512, 128)),
-                                 nn.ReLU(),
-                                 spectral_norm(nn.Linear(128, 32)),
-                                 nn.BatchNorm1d(32),
-                                 nn.Tanh())
+    response_net = nn.Sequential(
+        spectral_norm(nn.Linear(64 * 64, 1024)),
+        nn.ReLU(),
+        spectral_norm(nn.Linear(1024, 512)),
+        nn.ReLU(),
+        nn.BatchNorm1d(512),
+        spectral_norm(nn.Linear(512, 128)),
+        nn.ReLU(),
+        spectral_norm(nn.Linear(128, 32)),
+        nn.BatchNorm1d(32),
+        nn.Tanh(),
+    )
 
     # treatment_net = ImageFeature()
-    instrumental_net = nn.Sequential(spectral_norm(nn.Linear(3, 256)),
-                                     nn.ReLU(),
-                                     spectral_norm(nn.Linear(256, 128)),
-                                     nn.ReLU(),
-                                     nn.BatchNorm1d(128),
-                                     spectral_norm(nn.Linear(128, 128)),
-                                     nn.ReLU(),
-                                     nn.BatchNorm1d(128),
-                                     spectral_norm(nn.Linear(128, 32)),
-                                     nn.BatchNorm1d(32),
-                                     nn.ReLU(),
-                                     MixtureDensityNet(32, 64 * 64, 10))
+    instrumental_net = nn.Sequential(
+        spectral_norm(nn.Linear(3, 256)),
+        nn.ReLU(),
+        spectral_norm(nn.Linear(256, 128)),
+        nn.ReLU(),
+        nn.BatchNorm1d(128),
+        spectral_norm(nn.Linear(128, 128)),
+        nn.ReLU(),
+        nn.BatchNorm1d(128),
+        spectral_norm(nn.Linear(128, 32)),
+        nn.BatchNorm1d(32),
+        nn.ReLU(),
+        MixtureDensityNet(32, 64 * 64, 10),
+    )
 
     covariate_net = None
 

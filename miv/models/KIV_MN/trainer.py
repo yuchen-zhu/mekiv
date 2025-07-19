@@ -7,14 +7,18 @@ from miv.models.base_KIV.trainer import BaseKIVTrainer
 logger = logging.getLogger()
 
 
-
 class KIV_MNTrainer(BaseKIVTrainer):
 
-    def __init__(self, data_configs: dotdict, train_params: dotdict,
-                 gpu_flg: bool = False, dump_folder: Optional[Path] = None):
+    def __init__(
+        self,
+        data_configs: dotdict,
+        train_params: dotdict,
+        gpu_flg: bool = False,
+        dump_folder: Optional[Path] = None,
+    ):
         super(KIV_MNTrainer, self).__init__(data_configs, train_params)
 
-        self.which_regressor = 'avMN'
+        self.which_regressor = "avMN"
 
     def train(self, rand_seed: int = 42, verbose: int = 0) -> float:
         """
@@ -31,6 +35,6 @@ class KIV_MNTrainer(BaseKIVTrainer):
             The performance of model evaluated by oos
         """
 
-
-        return self._train(which_regressor=self.which_regressor, rand_seed=rand_seed, verbose=verbose)
-
+        return self._train(
+            which_regressor=self.which_regressor, rand_seed=rand_seed, verbose=verbose
+        )

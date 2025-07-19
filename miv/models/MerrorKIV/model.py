@@ -23,7 +23,7 @@ class MerrorKIVModel:
         self.sigma = sigma
 
     @staticmethod
-    def cal_gauss(XA, XB, sigma: float = 1):
+    def compute_gaussian_gram(XA, XB, sigma: float = 1):
         """
         Returns gaussian kernel matrix
         Parameters
@@ -48,9 +48,9 @@ class MerrorKIVModel:
         if covariate is not None:
             # breakpoint()
             X = np.concatenate([X, covariate], axis=1)
-        Kx = self.cal_gauss(X, self.fitted_X, self.sigma)
+        Kx = self.compute_gaussian_gram(X, self.fitted_X, self.sigma)
         return np.dot(Kx, self.alpha)
 
     def evaluate(self, test_data: TestDataSet):
         pred = self.predict(test_data.X_all, test_data.covariate)
-        return np.mean((test_data.Y_struct - pred)**2), pred
+        return np.mean((test_data.Y_struct - pred) ** 2), pred

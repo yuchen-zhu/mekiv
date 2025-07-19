@@ -31,20 +31,22 @@ def generate_test_demand_design() -> TestDataSet:
         target.append(f(p, t, s))
     features = np.array(data)
     targets: np.ndarray = np.array(target)[:, np.newaxis]
-    test_data = TestDataSet(X_all=features[:, 0:1],
-                            Y_struct=targets,
-                            covariate=features[:, 1:])
+    test_data = TestDataSet(
+        X_all=features[:, 0:1], Y_struct=targets, covariate=features[:, 1:]
+    )
     # breakpoint()
     return test_data
 
 
-def generate_train_demand_design(data_size: int,
-                                 rho: float,
-                                 merror_func_str: str,
-                                 m_scale: float,
-                                 n_scale: float,
-                                 bias: float,
-                                 rand_seed: int = 42) -> TrainDataSet:
+def generate_train_demand_design(
+    data_size: int,
+    rho: float,
+    merror_func_str: str,
+    m_scale: float,
+    n_scale: float,
+    bias: float,
+    rand_seed: int = 42,
+) -> TrainDataSet:
     """
 
     Parameters
@@ -78,8 +80,7 @@ def generate_train_demand_design(data_size: int,
     noise_price = rng.normal(0, 1.0, data_size)
     Z = np.c_[cost, time, emotion]
 
-
-    noise_demand = rho * noise_price + rng.normal(0, np.sqrt(1 - rho ** 2), data_size)
+    noise_demand = rho * noise_price + rng.normal(0, np.sqrt(1 - rho**2), data_size)
     price = 25 + (cost + 3) * psi(time) + noise_price
 
     X_hidden = price[:, np.newaxis]
@@ -87,19 +88,19 @@ def generate_train_demand_design(data_size: int,
     covariate = np.c_[time, emotion]
     M, N = merror_func(X_hidden=X_hidden, scale_m=m_scale, scale_n=n_scale, bias=bias)
 
-
     structure: np.ndarray = f(price, time, emotion).astype(float)
     outcome: np.ndarray = (structure + noise_demand).astype(float)
 
-
-    train_data = TrainDataSet(X_hidden=X_hidden,
-                              X_obs=X_obs,
-                              covariate=covariate,
-                              M=M,
-                              N=N,
-                              Z=Z,
-                              Y_struct=structure[:, np.newaxis],
-                              Y=outcome[:, np.newaxis])
+    train_data = TrainDataSet(
+        X_hidden=X_hidden,
+        X_obs=X_obs,
+        covariate=covariate,
+        M=M,
+        N=N,
+        Z=Z,
+        Y_struct=structure[:, np.newaxis],
+        Y=outcome[:, np.newaxis],
+    )
 
     return train_data
 
@@ -113,7 +114,7 @@ def generate_z_test_demand_design(rho) -> ZTestDataSet:
     """
     rng = default_rng(seed=42)
     cost = np.linspace(-2.0, 2.0, 20)
-    emotion = np.array([1,2,3,4,5,6,7])
+    emotion = np.array([1, 2, 3, 4, 5, 6, 7])
     time = np.linspace(0, 10, 20)
 
     iv = []
@@ -122,7 +123,7 @@ def generate_z_test_demand_design(rho) -> ZTestDataSet:
         iv.append([c, t, s])
         noise_p = rng.normal(0, 1.0)
         p = 25 + (c + 3) * psi(t) + noise_p
-        noise_d = rho * noise_p + rng.normal(0, np.sqrt(1-rho ** 2))
+        noise_d = rho * noise_p + rng.normal(0, np.sqrt(1 - rho**2))
         outcome.append(f(p, t, s) + noise_d)
     Z = np.array(iv)
     outcomes: np.ndarray = np.array(outcome)[:, np.newaxis]

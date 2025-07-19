@@ -1,4 +1,3 @@
-
 def rescale_treatment(treatment, data_name: str):
     if data_name in ["demand", "demand_image"]:
         psd = 3.7

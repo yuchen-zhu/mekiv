@@ -12,7 +12,9 @@ import logging
 logger = logging.getLogger()
 
 
-def build_extractor(data_name: str, **args) -> Tuple[nn.Module, nn.Module, Optional[nn.Module]]:
+def build_extractor(
+    data_name: str, **args
+) -> Tuple[nn.Module, nn.Module, Optional[nn.Module]]:
     if data_name == "demand":
         logger.info("build without image")
         return build_net_for_demand(**args)

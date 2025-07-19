@@ -7,6 +7,7 @@ import logging
 
 logger = logging.getLogger()
 
+
 class MixtureDensityNet(nn.Module):
 
     def __init__(self, n_input: int, n_output: int, n_component: int):
@@ -44,11 +45,11 @@ class MixtureDensityNet(nn.Module):
         """
         n_data = feature.size()[0]
         mu = self.mu_linear(feature).reshape((n_data, self.n_output, self.n_component))
-        logsigma = self.logsigma_linear(feature).reshape((n_data, self.n_output, self.n_component))
+        logsigma = self.logsigma_linear(feature).reshape(
+            (n_data, self.n_output, self.n_component)
+        )
         norm = Normal(loc=mu, scale=torch.exp(logsigma))
         logpi = self.logpi_linear(feature)
         logpi = logpi - torch.min(logpi)
         cat = OneHotCategorical(logits=logpi)
         return norm, cat
-
-

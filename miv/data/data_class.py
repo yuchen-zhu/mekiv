@@ -5,15 +5,17 @@ from miv.utils.util import dotdict
 
 
 class TrainDataSet(dotdict):
-    def __init__(self,
-                 X_hidden: np.ndarray,
-                 X_obs: Optional[np.ndarray],
-                 covariate: Optional[np.ndarray],
-                 Z: np.ndarray,
-                 M: np.ndarray,
-                 N: np.ndarray,
-                 Y: np.ndarray,
-                 Y_struct: np.ndarray):
+    def __init__(
+        self,
+        X_hidden: np.ndarray,
+        X_obs: Optional[np.ndarray],
+        covariate: Optional[np.ndarray],
+        Z: np.ndarray,
+        M: np.ndarray,
+        N: np.ndarray,
+        Y: np.ndarray,
+        Y_struct: np.ndarray,
+    ):
         super(TrainDataSet, self).__init__()
         self.X_hidden = X_hidden
         self.X_obs = X_obs
@@ -26,10 +28,9 @@ class TrainDataSet(dotdict):
 
 
 class TestDataSet(dotdict):
-    def __init__(self,
-                 X_all: np.ndarray,
-                 covariate: Optional[np.ndarray],
-                 Y_struct: np.ndarray):
+    def __init__(
+        self, X_all: np.ndarray, covariate: Optional[np.ndarray], Y_struct: np.ndarray
+    ):
         super(TestDataSet, self).__init__()
         self.X_all = X_all
         self.covariate = covariate
@@ -37,24 +38,24 @@ class TestDataSet(dotdict):
 
 
 class ZTestDataSet(dotdict):
-    def __init__(self,
-                 Z: np.ndarray,
-                 Y: np.ndarray):
+    def __init__(self, Z: np.ndarray, Y: np.ndarray):
         super(ZTestDataSet, self).__init__()
         self.Z = Z
         self.Y = Y
 
 
 class TrainDataSetTorch(dotdict):
-    def __int__(self,
-                X_hidden: torch.Tensor,
-                X_obs: Optional[torch.Tensor],
-                covariate: Optional[torch.Tensor],
-                Z: torch.Tensor,
-                M: torch.Tensor,
-                N: torch.Tensor,
-                Y: torch.Tensor,
-                Y_struct: torch.Tensor):
+    def __int__(
+        self,
+        X_hidden: torch.Tensor,
+        X_obs: Optional[torch.Tensor],
+        covariate: Optional[torch.Tensor],
+        Z: torch.Tensor,
+        M: torch.Tensor,
+        N: torch.Tensor,
+        Y: torch.Tensor,
+        Y_struct: torch.Tensor,
+    ):
 
         super(TrainDataSetTorch, self).__init__()
         self.X_hidden = X_hidden
@@ -67,8 +68,7 @@ class TrainDataSetTorch(dotdict):
         self.Y_struct = Y_struct
 
     @classmethod
-    def from_numpy(cls,
-                   train_data: TrainDataSet):
+    def from_numpy(cls, train_data: TrainDataSet):
         covariate, X_obs = None, None
         if train_data.covariate is not None:
             covariate = torch.tensor(train_data.covariate, dtype=torch.float64)
@@ -82,7 +82,7 @@ class TrainDataSetTorch(dotdict):
             M=torch.tensor(train_data.M, dtype=torch.float64),
             N=torch.tensor(train_data.N, dtype=torch.float64),
             Y=torch.tensor(train_data.Y, dtype=torch.float64),
-            Y_struct=torch.tensor(train_data.Y_struct, dtype=torch.float64)
+            Y_struct=torch.tensor(train_data.Y_struct, dtype=torch.float64),
         )
 
     def to_gpu(self):
@@ -102,10 +102,9 @@ class TrainDataSetTorch(dotdict):
 
 
 class TestDataSetTorch(dotdict):
-    def __init__(self,
-                 X_all: torch.Tensor,
-                 covariate: torch.Tensor,
-                 Y_struct: torch.Tensor):
+    def __init__(
+        self, X_all: torch.Tensor, covariate: torch.Tensor, Y_struct: torch.Tensor
+    ):
 
         super(TestDataSetTorch, self).__init__()
         self.X_all = X_all
@@ -113,15 +112,14 @@ class TestDataSetTorch(dotdict):
         self.Y_struct = Y_struct
 
     @classmethod
-    def from_numpy(cls,
-                   test_data: TestDataSet):
+    def from_numpy(cls, test_data: TestDataSet):
         covariate = None
         if test_data.covariate is not None:
             covariate = torch.tensor(test_data.covariate, dtype=torch.float64)
         return cls(
             X_all=torch.tensor(test_data.X_all, dtype=torch.float64),
             covariate=covariate,
-            Y_struct=torch.tensor(test_data.Y_struct, dtype=torch.float64)
+            Y_struct=torch.tensor(test_data.Y_struct, dtype=torch.float64),
         )
 
     def to_gpu(self):
@@ -134,20 +132,17 @@ class TestDataSetTorch(dotdict):
 
 
 class ZTestDataSetTorch(dotdict):
-    def __init__(self,
-                 Z: torch.Tensor,
-                 Y: torch.Tensor):
+    def __init__(self, Z: torch.Tensor, Y: torch.Tensor):
 
         super(ZTestDataSetTorch, self).__init__()
         self.Z = Z
         self.Y = Y
 
     @classmethod
-    def from_numpy(cls,
-                   z_test_data: TestDataSet):
+    def from_numpy(cls, z_test_data: TestDataSet):
         return cls(
             Z=torch.tensor(z_test_data.Z, dtype=torch.float32),
-            Y=torch.tensor(z_test_data.Y_struct, dtype=torch.float32)
+            Y=torch.tensor(z_test_data.Y_struct, dtype=torch.float32),
         )
 
     def to_gpu(self):
@@ -155,12 +150,8 @@ class ZTestDataSetTorch(dotdict):
         self.Y = self.Y.cuda()
 
 
-
 class StageMDataSet(dotdict):
-    def __init__(self,
-                 Chi: np.ndarray,
-                 Z: Optional[np.ndarray],
-                 labels: np.ndarray):
+    def __init__(self, Chi: np.ndarray, Z: Optional[np.ndarray], labels: np.ndarray):
         super(StageMDataSet, self).__init__()
         self.Chi = Chi
         self.Z = Z
@@ -168,10 +159,7 @@ class StageMDataSet(dotdict):
 
 
 class StageMDataSetTorch(dotdict):
-    def __int__(self,
-                Chi: torch.Tensor,
-                Z: torch.Tensor,
-                labels: torch.Tensor):
+    def __int__(self, Chi: torch.Tensor, Z: torch.Tensor, labels: torch.Tensor):
 
         super(StageMDataSetTorch, self).__init__()
         self.Chi = Chi
@@ -179,17 +167,15 @@ class StageMDataSetTorch(dotdict):
         self.labels = labels
 
     @classmethod
-    def from_numpy(cls,
-                   train_data: StageMDataSet):
+    def from_numpy(cls, train_data: StageMDataSet):
         # breakpoint()
         return cls(
             Chi=torch.tensor(train_data.Chi, dtype=torch.float64),
             Z=torch.tensor(train_data.Z, dtype=torch.float64),
-            labels=torch.tensor(train_data.labels, dtype=torch.complex128)
+            labels=torch.tensor(train_data.labels, dtype=torch.complex128),
         )
 
     def to_gpu(self):
         self.Z = self.Z.cuda()
         self.Chi = self.Chi.cuda()
         self.labels = self.labels.cuda()
-

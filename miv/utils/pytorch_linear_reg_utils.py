@@ -1,9 +1,7 @@
 import torch
 
 
-def fit_linear(target: torch.Tensor,
-               feature: torch.Tensor,
-               reg: float = 0.0):
+def fit_linear(target: torch.Tensor, feature: torch.Tensor, reg: float = 0.0):
     """
     Parameters
     ----------
@@ -24,7 +22,7 @@ def fit_linear(target: torch.Tensor,
     A = A + reg * torch.eye(nDim, device=device)
     # U = torch.cholesky(A)
     # A_inv = torch.cholesky_inverse(U)
-    #TODO use cholesky version in the latest pytorch
+    # TODO use cholesky version in the latest pytorch
     A_inv = torch.inverse(A)
     if target.dim() == 2:
         b = torch.matmul(feature.t(), target)
@@ -43,9 +41,7 @@ def linear_reg_pred(feature: torch.Tensor, weight: torch.Tensor):
         return torch.einsum("nd,d...->n...", feature, weight)
 
 
-def linear_reg_loss(target: torch.Tensor,
-                    feature: torch.Tensor,
-                    reg: float):
+def linear_reg_loss(target: torch.Tensor, feature: torch.Tensor, reg: float):
     weight = fit_linear(target, feature, reg)
     pred = linear_reg_pred(feature, weight)
     return torch.norm((target - pred)) ** 2 + reg * torch.norm(weight) ** 2

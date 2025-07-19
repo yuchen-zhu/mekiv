@@ -2,7 +2,9 @@ from typing import Dict, Any, Iterator, Tuple
 from itertools import product
 
 
-def grid_search_dict(org_params: Dict[str, Any]) -> Iterator[Tuple[str, Dict[str, Any]]]:
+def grid_search_dict(
+    org_params: Dict[str, Any]
+) -> Iterator[Tuple[str, Dict[str, Any]]]:
     """
     Iterate list in dict to do grid search.
 

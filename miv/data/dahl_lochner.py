@@ -52,7 +52,7 @@ class YModel(torch.nn.Module):
         return pyxu_mean, pyxu_scale
 
 
-with open('miv/data/dahl_lochner.pickle', 'rb') as handle:
+with open("miv/data/dahl_lochner.pickle", "rb") as handle:
     data = pickle.load(handle)
 
 data_tf = dotdict({})
@@ -63,15 +63,15 @@ for key in data.keys():
 
 y_model = YModel(data=None)
 
-y_model.load_state_dict(torch.load('miv/data/dahl_lochner_f.pt'))
+y_model.load_state_dict(torch.load("miv/data/dahl_lochner_f.pt"))
 y_model.eval()
 
 
 def f(x: np.ndarray) -> np.ndarray:
     f = y_model.fx
     g = y_model.gu
-    exp_gu = torch.mean(g(data_tf['U']))
-    x_tf = torch.tensor(x, dtype=torch.float32).reshape(-1,1)
+    exp_gu = torch.mean(g(data_tf["U"]))
+    x_tf = torch.tensor(x, dtype=torch.float32).reshape(-1, 1)
     fx = f(x_tf) + exp_gu
 
     return fx.detach().numpy()
@@ -87,18 +87,18 @@ def generate_test_dahl_lochner() -> TestDataSet:
     x = np.linspace(-1.5, 1.5, 100)
     y = f(x)
 
-    test_data = TestDataSet(X_all=x[:, np.newaxis],
-                            Y_struct=y,
-                            covariate=None)
+    test_data = TestDataSet(X_all=x[:, np.newaxis], Y_struct=y, covariate=None)
     return test_data
 
 
-def generate_train_dahl_lochner(data_size: int,
-                                  merror_func_str: str,
-                                  m_scale: float,
-                                  n_scale: float,
-                                  bias: float,
-                                  rand_seed: int = 42) -> TrainDataSet:
+def generate_train_dahl_lochner(
+    data_size: int,
+    merror_func_str: str,
+    m_scale: float,
+    n_scale: float,
+    bias: float,
+    rand_seed: int = 42,
+) -> TrainDataSet:
     """
 
     Parameters
@@ -121,15 +121,16 @@ def generate_train_dahl_lochner(data_size: int,
     -------
     train_data : TrainDataSet
     """
-    structural = f(data['X'][:data_size])
+    structural = f(data["X"][:data_size])
 
-    train_data = TrainDataSet(X_hidden=data['X'][:data_size],
-                              X_obs=None,
-                              covariate=None,
-                              M=data['M'][:data_size],
-                              N=data['N'][:data_size],
-                              Z=data['Z'][:data_size],
-                              Y_struct=structural,
-                              Y=data['Y'][:data_size])
+    train_data = TrainDataSet(
+        X_hidden=data["X"][:data_size],
+        X_obs=None,
+        covariate=None,
+        M=data["M"][:data_size],
+        N=data["N"][:data_size],
+        Z=data["Z"][:data_size],
+        Y_struct=structural,
+        Y=data["Y"][:data_size],
+    )
     return train_data
-

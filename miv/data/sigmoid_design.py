@@ -20,18 +20,20 @@ def generate_test_sigmoid_design() -> TestDataSet:
     x = np.linspace(0, 1, 100)
     y = f(x)
 
-    test_data = TestDataSet(X_all=x[:, np.newaxis],
-                            Y_struct=y[:, np.newaxis],
-                            covariate=None)
+    test_data = TestDataSet(
+        X_all=x[:, np.newaxis], Y_struct=y[:, np.newaxis], covariate=None
+    )
     return test_data
 
 
-def generate_train_sigmoid_design(data_size: int,
-                                  merror_func_str: str,
-                                  m_scale: float,
-                                  n_scale: float,
-                                  bias: float,
-                                  rand_seed: int = 42) -> TrainDataSet:
+def generate_train_sigmoid_design(
+    data_size: int,
+    merror_func_str: str,
+    m_scale: float,
+    n_scale: float,
+    bias: float,
+    rand_seed: int = 42,
+) -> TrainDataSet:
     """
 
     Parameters
@@ -62,19 +64,21 @@ def generate_train_sigmoid_design(data_size: int,
     utw = rng.multivariate_normal(mu, sigma, size=data_size)
     u = utw[:, 0:1]
     z = stats.norm.cdf(utw[:, 2])[:, np.newaxis]
-    x = stats.norm.cdf((utw[:, 1] + utw[:, 2] )/ np.sqrt(2))[:, np.newaxis]
+    x = stats.norm.cdf((utw[:, 1] + utw[:, 2]) / np.sqrt(2))[:, np.newaxis]
     structural = f(x)
     outcome = f(x) + u
     M, N = merror_func(X_hidden=x, scale_m=m_scale, scale_n=n_scale, bias=bias)
 
-    train_data = TrainDataSet(X_hidden=x,
-                              X_obs=None,
-                              covariate=None,
-                              M=M,
-                              N=N,
-                              Z=z,
-                              Y_struct=structural,
-                              Y=outcome)
+    train_data = TrainDataSet(
+        X_hidden=x,
+        X_obs=None,
+        covariate=None,
+        M=M,
+        N=N,
+        Z=z,
+        Y_struct=structural,
+        Y=outcome,
+    )
     return train_data
 
 
@@ -100,6 +104,5 @@ def generate_z_test_sigmoid_design() -> ZTestDataSet:
         outcome.append(out)
     Z = ivs[:, np.newaxis]
     outcomes = np.array(outcome)[:, np.newaxis]
-    z_test_data = ZTestDataSet(Z=Z,
-                               Y=outcomes)
+    z_test_data = ZTestDataSet(Z=Z, Y=outcomes)
     return z_test_data

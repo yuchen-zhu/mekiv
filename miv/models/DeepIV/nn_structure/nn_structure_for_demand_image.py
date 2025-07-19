@@ -21,8 +21,8 @@ class ImageFeature(nn.Module):
         self.linear2 = nn.Linear(128, 64)
 
     def forward(self, data):
-        dense = data[:, :self.num_dense_feature]
-        image = data[:, self.num_dense_feature:]
+        dense = data[:, : self.num_dense_feature]
+        image = data[:, self.num_dense_feature :]
         image = image.reshape((-1, 1, 28, 28))
         image_feature = F.relu(self.conv1(image))
         image_feature = self.maxpool(F.relu(self.conv2(image_feature)))
@@ -33,17 +33,17 @@ class ImageFeature(nn.Module):
         return torch.cat([dense, image_feature], dim=1)
 
 
-
 class ResponseModel(nn.Module):
 
     def __init__(self, dropout_ratio):
         super(ResponseModel, self).__init__()
-        self.net = nn.Sequential(ImageFeature(2),
-                                 nn.Linear(66, 32),
-                                 nn.ReLU(),
-                                 nn.Dropout(dropout_ratio),
-                                 nn.Linear(32, 1)
-                                 )
+        self.net = nn.Sequential(
+            ImageFeature(2),
+            nn.Linear(66, 32),
+            nn.ReLU(),
+            nn.Dropout(dropout_ratio),
+            nn.Linear(32, 1),
+        )
 
     def forward(self, treatment, covariate):
         feature = torch.cat([treatment, covariate], dim=1)
@@ -51,11 +51,13 @@ class ResponseModel(nn.Module):
 
 
 def build_net_for_demand_image(dropout_rate, **args):
-    instrumental_net = nn.Sequential(ImageFeature(2),
-                                     nn.Linear(66, 32),
-                                     nn.ReLU(),
-                                     nn.Dropout(dropout_rate),
-                                     MixtureDensityNet(32, 1, 10))
+    instrumental_net = nn.Sequential(
+        ImageFeature(2),
+        nn.Linear(66, 32),
+        nn.ReLU(),
+        nn.Dropout(dropout_rate),
+        MixtureDensityNet(32, 1, 10),
+    )
 
     response_net = ResponseModel(dropout_rate)
     return instrumental_net, response_net
