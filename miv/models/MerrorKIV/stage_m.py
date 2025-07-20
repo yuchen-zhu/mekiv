@@ -1,11 +1,11 @@
+import logging
+
+import numpy as np
 import torch
 from torch import tensor, optim
-from miv.utils.util import dotdict
-import numpy as np
-from miv.data.data_class import StageMDataSetTorch, TrainDataSet
-from miv.models.MerrorKIV.model import MerrorKIVModel
 
-import logging
+from miv.data.data_class import StageMDataSetTorch
+from miv.utils import DotDict, compute_gaussian_gram
 
 ###########################################
 ############# STAGE 2 MODEL ###############
@@ -13,12 +13,13 @@ import logging
 
 logger = logging.Logger(__name__)
 
+
 class StageMModel(torch.nn.Module):
     def __init__(
         self,
         stageM_data: StageMDataSetTorch,
-        train_params: dotdict,
-        stage1_MNZ: dotdict,
+        train_params: DotDict,
+        stage1_MNZ: DotDict,
         gpu_flg: bool = False,
     ):
         super().__init__()
@@ -28,7 +29,7 @@ class StageMModel(torch.nn.Module):
         # print('first 10 initialised: ', self.x[:10])
         self.stageM_data = stageM_data
         self.stage1_MNZ = stage1_MNZ
-        # breakpoint()
+
         self.reg_param = train_params.reg_param
         self.x_initialiser = (
             torch.tensor(stage1_MNZ.M) + torch.tensor(stage1_MNZ.N)
@@ -48,19 +49,16 @@ class StageMModel(torch.nn.Module):
             self.lambda_x = train_params["lambda_x"]
         logger.info("first 10 initialised: ", self.x[:10])
         self.train_params = train_params
-        self.KZ1Z1 = tensor(
-            MerrorKIVModel.compute_gaussian_gram(stage1_MNZ.Z, stage1_MNZ.Z, stage1_MNZ.sigmaZ)
-        )
+        self.KZ1Z1 = tensor(compute_gaussian_gram(stage1_MNZ.Z, stage1_MNZ.sigmaZ, 1))
 
     def forward(self, idx):
         ### gamma ###
         n = self.stage1_MNZ.Z.shape[0]
         z = self.stageM_data.Z[idx]
-        K_Z1z = MerrorKIVModel.compute_gaussian_gram(
-            torch.tensor(self.stage1_MNZ.Z), z, self.stage1_MNZ.sigmaZ
-        )
+        self1 = torch.tensor(self.stage1_MNZ.Z)
+        K_Z1z = compute_gaussian_gram(z, self.stage1_MNZ.sigmaZ, 1)
         # gamma = self.cme_X.brac_inv.matmul(K_Zz)
-        # breakpoint()
+
         if not self.train_params["lambda_x"]:
             gamma_x = torch.linalg.solve(
                 self.KZ1Z1 + n * torch.exp(self.lambda_x) * torch.eye(n), K_Z1z
@@ -78,7 +76,7 @@ class StageMModel(torch.nn.Module):
         #####################################
 
         ### denominator ###
-        denom = dotdict({})
+        denom = DotDict({})
         # using gamma to evaluate the charasteristic function value at a bunch of curly_x's
         denom.cos_weighted = torch.sum(cos_term * gamma_x.t(), dim=-1).reshape(-1, 1)
         denom.sin_weighted = torch.sum(sin_term * gamma_x.t(), dim=-1).reshape(-1, 1)
@@ -86,7 +84,7 @@ class StageMModel(torch.nn.Module):
         ###################
 
         ### numerator ###
-        numer = dotdict({})
+        numer = DotDict({})
         numer.cos_weighted = torch.sum(
             cos_term * gamma_x.t() * self.x.reshape(1, -1), dim=-1
         ).reshape(-1, 1)
@@ -108,7 +106,7 @@ class StageMModel(torch.nn.Module):
         labels_as_real = torch.view_as_real(labels)
 
         mse = torch.sum((labels_as_real - preds_as_real) ** 2) / num_label / dim_label
-        # breakpoint()
+
         reg = torch.sum(
             (self.x - (torch.tensor(self.stage1_MNZ.M + self.stage1_MNZ.N) / 2)) ** 2
         )
@@ -118,7 +116,7 @@ class StageMModel(torch.nn.Module):
         return loss, mse, reg
 
 
-def split_into_batches(stageM_data: StageMDataSetTorch, stageM_args: dotdict):
+def split_into_batches(stageM_data: StageMDataSetTorch, stageM_args: DotDict):
     batches_idxes = []
     idxes = np.arange(stageM_data.Chi.shape[0])
     print("num train data (chi) 1: ", len(idxes))
@@ -142,7 +140,7 @@ def split_into_batches(stageM_data: StageMDataSetTorch, stageM_args: dotdict):
 
 
 def stage_m_train(
-    model: StageMModel, stageM_data: StageMDataSetTorch, stageM_args: dotdict
+    model: StageMModel, stageM_data: StageMDataSetTorch, stageM_args: DotDict
 ):
     model.train()
     # itertools.chain(list(self.iv_net_hidden.parameters()),
@@ -168,7 +166,7 @@ def stage_m_train(
             loss, mse, reg = model.loss(preds, batch_idx)
 
             optimizer.zero_grad()
-            # breakpoint()
+
             # loss.backward(retain_graph=True)
             loss.backward()
             #             print('grad values: ', model.x.grad[:10])
@@ -179,7 +177,7 @@ def stage_m_train(
             if i % 1 == 0:
                 # print('[epoch %d, batch %5d] loss: %.5f, mse: %.5f, reg: %.5f' % (
                 # ep + 1, i + 1, running_loss / 1, mse / 1, stageM_args.reg_param * reg / 1))
-                # breakpoint()
+
                 running_loss = 0.0
 
             losses.append(loss.item())

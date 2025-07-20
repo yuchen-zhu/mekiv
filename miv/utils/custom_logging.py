@@ -1,16 +1,16 @@
 import json
-import shutil
-from typing import Union
-from pathlib import Path, PosixPath
-import requests
 import logging
+import shutil
+from pathlib import Path, PosixPath
+from typing import Union
 
+import requests
+
+__all__ = ["configure_logger", "SlackLoggingHandler"]
 
 LOG_FORMAT = logging.Formatter(
     "%(name)s: %(asctime)s,%(msecs)d %(levelname)-4s [%(filename)s:%(lineno)d] %(message)s"
 )
-
-logger = logging.getLogger()
 
 
 class SlackLoggingHandler(logging.StreamHandler):
@@ -24,14 +24,12 @@ class SlackLoggingHandler(logging.StreamHandler):
 
 
 def configure_logger(
-    logger_name: str,
     log_format: str = LOG_FORMAT,
     log_dir: Union[str, Path, PosixPath, None] = None,
     webhook_url: Union[str, None] = None,
 ):
     # get root logger
-    logger = logging.getLogger()
-    logger.name = logger_name
+    logger = logging.getLogger("mekiv")
 
     # slack post
     if webhook_url is not None:
@@ -45,8 +43,7 @@ def configure_logger(
         if log_dir.exists():
             shutil.rmtree(log_dir)
         log_dir.mkdir(parents=True)
-        log_filename = str(log_dir.joinpath("text_log.txt"))
-        file_handler = logging.FileHandler(log_filename)
+        file_handler = logging.FileHandler(str(log_dir / "text_log.txt"))
         file_handler.setLevel(logging.INFO)
         file_handler.setFormatter(log_format)
         logger.addHandler(file_handler)

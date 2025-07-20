@@ -1,13 +1,10 @@
-import numpy as np
-from numpy.random import default_rng
-from miv.data.data_class import StageMDataSet, StageMDataSetTorch
-import torch
-from torch import tensor
 import logging
 
-from miv.utils.util import dotdict
-from miv.models.MerrorKIV.get_median import get_median
+import numpy as np
+from numpy.random import default_rng
 
+from miv.data.data_class import StageMDataSet, StageMDataSetTorch
+from miv.utils import DotDict, compute_median_sq_dist
 
 logger = logging.Logger(__name__)
 
@@ -38,7 +35,7 @@ def throw_away_outliers_with_labelrealparts(data2, outlier_cutoff_param):
         * (label_imag < np.mean(label_imag) + outlier_cutoff_param * np.std(label_imag))
         * (label_imag > np.mean(label_imag) - outlier_cutoff_param * np.std(label_imag))
     )
-    # breakpoint()
+
     data2.labels = data2.labels[idx_select]
     data2.Chi = data2.Chi[idx_select]
     data2.Z = data2.Z[idx_select]
@@ -57,8 +54,8 @@ def prepare_stage_2_data(raw_data2, rand_seed):
 
 
 def create_stage_2_raw_data(n_chi, N1, M1, Z2, gamma_n, gamma_mn):
-    sigmaN = get_median(N1)
-    
+    sigmaN = compute_median_sq_dist(N1)
+
     # input: (n_Chi, z) --> output: y
     Chi = sample_from_khat(n_chi, sigmaN**0.5).reshape(
         -1, 1
@@ -66,7 +63,7 @@ def create_stage_2_raw_data(n_chi, N1, M1, Z2, gamma_n, gamma_mn):
     m = Z2.shape[0]
 
     ### decompose e^{i\mathcal{X}n_i} ###
-    # breakpoint()
+
     cos_term = np.cos(
         Chi @ N1.reshape(1, -1)
     )  # shape: Chi.shape[0] x args.train.N.shape[0]
@@ -74,7 +71,7 @@ def create_stage_2_raw_data(n_chi, N1, M1, Z2, gamma_n, gamma_mn):
     #####################################
 
     ### denominator ###
-    denom = dotdict({})
+    denom = DotDict({})
     # using gamma to evaluate the charasteristic function value at a bunch of Chi's
     denom.cos_weighted = cos_term.dot(gamma_n)
     denom.sin_weighted = sin_term.dot(gamma_n)
@@ -82,7 +79,7 @@ def create_stage_2_raw_data(n_chi, N1, M1, Z2, gamma_n, gamma_mn):
     ###################
 
     ### numerator ###
-    numer = dotdict({})
+    numer = DotDict({})
     numer.cos_weighted = cos_term.dot(
         gamma_mn * M1
     )  # shape: Chi.shape[0] x args.dev.Z.shape[0]
@@ -96,8 +93,8 @@ def create_stage_2_raw_data(n_chi, N1, M1, Z2, gamma_n, gamma_mn):
     Chi_flat = np.repeat(Chi, m).reshape(-1, 1)
     z_dim = Z2.shape[1]
     z_dev_flat = np.repeat(Z2[np.newaxis, :, :], n_chi, axis=0).reshape(-1, z_dim)
-    # breakpoint()
-    raw_data2 = dotdict({})
+
+    raw_data2 = DotDict({})
     raw_data2.Chi = Chi_flat
     raw_data2.Z = z_dev_flat
     raw_data2.labels = train_labels
@@ -108,40 +105,20 @@ def create_stage_2_raw_data(n_chi, N1, M1, Z2, gamma_n, gamma_mn):
 
 
 def log_stage2_results(fitted_X, X_hidden, M, N):
-    logger.info("------ fitted X / N / M / (M+N)/2  compared with ground truth X -------")
     logger.info(
-        (np.sum((fitted_X - X_hidden) ** 2) / fitted_X.shape[0])
-        ** 0.5
+        "------ fitted X / N / M / (M+N)/2  compared with ground truth X -------"
+    )
+    logger.info(
+        (np.sum((fitted_X - X_hidden) ** 2) / fitted_X.shape[0]) ** 0.5
         / np.std(X_hidden)
     )
     logger.info(
-        (
-            np.sum((N - X_hidden) ** 2)
-            / fitted_X.shape[0]
-        )
-        ** 0.5
-        / np.std(X_hidden)
+        (np.sum((N - X_hidden) ** 2) / fitted_X.shape[0]) ** 0.5 / np.std(X_hidden)
     )
     logger.info(
-        (
-            np.sum((M - X_hidden) ** 2)
-            / fitted_X.shape[0]
-        )
-        ** 0.5
-        / np.std(X_hidden)
+        (np.sum((M - X_hidden) ** 2) / fitted_X.shape[0]) ** 0.5 / np.std(X_hidden)
     )
     logger.info(
-        (
-            np.sum(
-                (
-                    1 / 2 * M
-                    + 1 / 2 * N
-                    - X_hidden
-                )
-                ** 2
-            )
-            / fitted_X.shape[0]
-        )
-        ** 0.5
+        (np.sum((1 / 2 * M + 1 / 2 * N - X_hidden) ** 2) / fitted_X.shape[0]) ** 0.5
         / np.std(X_hidden)
     )

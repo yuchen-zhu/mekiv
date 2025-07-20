@@ -1,8 +1,7 @@
-from typing import Optional
 import numpy as np
 from scipy.spatial.distance import cdist
 
-from miv.data.data_class import TrainDataSet, TestDataSet, ZTestDataSet
+from miv.data.data_class import TestDataSet, ZTestDataSet
 
 
 class KernelIVModel:
@@ -33,22 +32,22 @@ class KernelIVModel:
         self.Z_train = Z_train
         self.z_brac = z_brac
 
-    # @staticmethod
-    # def compute_gaussian_gram(XA, XB, sigma: float = 1):
-    #     """
-    #     Returns gaussian kernel matrix
-    #     Parameters
-    #     ----------
-    #     XA : np.ndarray[n_data1, n_dim]
-    #     XB : np.ndarray[n_data2, n_dim]
-    #     sigma : float
+    @staticmethod
+    def compute_gaussian_gram(XA, XB, sigma: float = 1):
+        """
+        Returns gaussian kernel matrix
+        Parameters
+        ----------
+        XA : np.ndarray[n_data1, n_dim]
+        XB : np.ndarray[n_data2, n_dim]
+        sigma : float
 
-    #     Returns
-    #     -------
-    #     mat: np.ndarray[n_data1, n_data2]
-    #     """
-    #     dist_mat = cdist(XA, XB, "sqeuclidean")
-    #     return np.exp(-dist_mat / 1 / sigma)
+        Returns
+        -------
+        mat: np.ndarray[n_data1, n_data2]
+        """
+        dist_mat = cdist(XA, XB, "sqeuclidean")
+        return np.exp(-0.5 * dist_mat / sigma)
 
     def predict(self, treatment: np.ndarray, covariate: np.ndarray):
         X = np.array(treatment, copy=True)
