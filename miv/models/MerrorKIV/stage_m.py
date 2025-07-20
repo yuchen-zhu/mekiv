@@ -49,14 +49,17 @@ class StageMModel(torch.nn.Module):
             self.lambda_x = train_params["lambda_x"]
         logger.info("first 10 initialised: ", self.x[:10])
         self.train_params = train_params
-        self.KZ1Z1 = tensor(compute_gaussian_gram(stage1_MNZ.Z, stage1_MNZ.sigmaZ, 1))
+        self.KZ1Z1 = tensor(
+            compute_gaussian_gram(stage1_MNZ.Z, stage1_MNZ.Z, stage1_MNZ.sigmaZ)
+        )
 
     def forward(self, idx):
         ### gamma ###
         n = self.stage1_MNZ.Z.shape[0]
         z = self.stageM_data.Z[idx]
-        self1 = torch.tensor(self.stage1_MNZ.Z)
-        K_Z1z = compute_gaussian_gram(z, self.stage1_MNZ.sigmaZ, 1)
+        K_Z1z = compute_gaussian_gram(
+            torch.tensor(self.stage1_MNZ.Z), z, self.stage1_MNZ.sigmaZ
+        )
         # gamma = self.cme_X.brac_inv.matmul(K_Zz)
 
         if not self.train_params["lambda_x"]:
