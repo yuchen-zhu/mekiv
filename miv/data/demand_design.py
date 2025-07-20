@@ -1,8 +1,10 @@
+from itertools import product
+
 import numpy as np
+from numpy.random import default_rng
+
 from ..data.data_class import TrainDataSet, TestDataSet, ZTestDataSet
 from ..data.merror_funcs import get_merror_func
-from itertools import product
-from numpy.random import default_rng
 
 
 def psi(t: np.ndarray) -> np.ndarray:
@@ -34,7 +36,7 @@ def generate_test_demand_design() -> TestDataSet:
     test_data = TestDataSet(
         X_all=features[:, 0:1], Y_struct=targets, covariate=features[:, 1:]
     )
-    # breakpoint()
+
     return test_data
 
 

@@ -1,19 +1,15 @@
 from pathlib import Path
+
+import numpy as np
 import pandas as pd
 import yaml
 from sklearn.model_selection import train_test_split
-import numpy as np
 
-from miv.utils.util import dotdict
+from miv.data.data_class import TrainDataSet, TestDataSet, ZTestDataSet
 from miv.data.demand_design import (
     generate_test_demand_design,
     generate_train_demand_design,
     generate_z_test_demand_design,
-)
-from miv.data.sigmoid_design import (
-    generate_test_sigmoid_design,
-    generate_train_sigmoid_design,
-    generate_z_test_sigmoid_design,
 )
 from miv.data.linear_design import (
     generate_test_linear_design,
@@ -25,11 +21,16 @@ from miv.data.linear_design_cp import (
     generate_train_linear_cp_design,
     generate_z_test_linear_cp_design,
 )
+from miv.data.sigmoid_design import (
+    generate_test_sigmoid_design,
+    generate_train_sigmoid_design,
+    generate_z_test_sigmoid_design,
+)
+from miv.utils import DotDict
+
 
 # from miv.data.dahl_lochner import generate_test_dahl_lochner, generate_train_dahl_lochner
 # TODO: This function is not working right now because of a pytorch error, uncomment the above to show the error.
-
-from miv.data.data_class import TrainDataSet, TestDataSet, ZTestDataSet
 
 
 def sim_dgp(design):
@@ -41,8 +42,8 @@ def sim_dgp(design):
     M = design.fm(X, design.N_data)
     N = design.fn(X, design.N_data)
     Y = design.fy(X, U, design.N_data)
-    # breakpoint()
-    data = dotdict({})
+
+    data = DotDict({})
     data.X = X
     data.Y = Y
     data.Z = Z
@@ -260,7 +261,7 @@ def generate_z_test_data(data_name: str, **args) -> ZTestDataSet:
         pass
     else:
         raise ValueError(f"data name {data_name} is not implemented")
-    
+
 
 def split_train_data(split_ratio: float, train_data: TrainDataSet):
     n_data = train_data.X_hidden.shape[0]

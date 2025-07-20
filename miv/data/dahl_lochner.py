@@ -1,14 +1,11 @@
-import numpy as np
-from scipy import stats
+import pickle
 
-from ..data.data_class import TrainDataSet, TestDataSet, ZTestDataSet
-from ..data.merror_funcs import get_merror_func
-from numpy.random import default_rng
+import numpy as np
 import torch
 from torch import nn
-from miv.utils.util import dotdict
 
-import pickle
+from ..data.data_class import TrainDataSet, TestDataSet
+from ..utils import DotDict
 
 data = None
 
@@ -55,7 +52,7 @@ class YModel(torch.nn.Module):
 with open("miv/data/dahl_lochner.pickle", "rb") as handle:
     data = pickle.load(handle)
 
-data_tf = dotdict({})
+data_tf = DotDict({})
 
 for key in data.keys():
     data_tf[key] = torch.tensor(data[key], dtype=torch.float32)

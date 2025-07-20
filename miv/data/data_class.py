@@ -1,10 +1,12 @@
 from typing import Optional
+
 import numpy as np
 import torch
-from miv.utils.util import dotdict
+
+from miv.utils import DotDict
 
 
-class TrainDataSet(dotdict):
+class TrainDataSet(DotDict):
     def __init__(
         self,
         X_hidden: np.ndarray,
@@ -27,7 +29,7 @@ class TrainDataSet(dotdict):
         self.Y_struct = Y_struct
 
 
-class TestDataSet(dotdict):
+class TestDataSet(DotDict):
     def __init__(
         self, X_all: np.ndarray, covariate: Optional[np.ndarray], Y_struct: np.ndarray
     ):
@@ -37,14 +39,14 @@ class TestDataSet(dotdict):
         self.Y_struct = Y_struct
 
 
-class ZTestDataSet(dotdict):
+class ZTestDataSet(DotDict):
     def __init__(self, Z: np.ndarray, Y: np.ndarray):
         super(ZTestDataSet, self).__init__()
         self.Z = Z
         self.Y = Y
 
 
-class TrainDataSetTorch(dotdict):
+class TrainDataSetTorch(DotDict):
     def __int__(
         self,
         X_hidden: torch.Tensor,
@@ -101,7 +103,7 @@ class TrainDataSetTorch(dotdict):
         self.Y_struct = self.Y_struct.cuda()
 
 
-class TestDataSetTorch(dotdict):
+class TestDataSetTorch(DotDict):
     def __init__(
         self, X_all: torch.Tensor, covariate: torch.Tensor, Y_struct: torch.Tensor
     ):
@@ -131,7 +133,7 @@ class TestDataSetTorch(dotdict):
         self.Y_struct = self.Y_struct.cuda()
 
 
-class ZTestDataSetTorch(dotdict):
+class ZTestDataSetTorch(DotDict):
     def __init__(self, Z: torch.Tensor, Y: torch.Tensor):
 
         super(ZTestDataSetTorch, self).__init__()
@@ -150,7 +152,7 @@ class ZTestDataSetTorch(dotdict):
         self.Y = self.Y.cuda()
 
 
-class StageMDataSet(dotdict):
+class StageMDataSet(DotDict):
     def __init__(self, Chi: np.ndarray, Z: Optional[np.ndarray], labels: np.ndarray):
         super(StageMDataSet, self).__init__()
         self.Chi = Chi
@@ -158,7 +160,7 @@ class StageMDataSet(dotdict):
         self.labels = labels
 
 
-class StageMDataSetTorch(dotdict):
+class StageMDataSetTorch(DotDict):
     def __int__(self, Chi: torch.Tensor, Z: torch.Tensor, labels: torch.Tensor):
 
         super(StageMDataSetTorch, self).__init__()
@@ -168,7 +170,7 @@ class StageMDataSetTorch(dotdict):
 
     @classmethod
     def from_numpy(cls, train_data: StageMDataSet):
-        # breakpoint()
+
         return cls(
             Chi=torch.tensor(train_data.Chi, dtype=torch.float64),
             Z=torch.tensor(train_data.Z, dtype=torch.float64),

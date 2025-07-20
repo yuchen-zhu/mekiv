@@ -1,9 +1,9 @@
 import numpy as np
+from numpy.random import default_rng
 from scipy import stats
 
 from ..data.data_class import TrainDataSet, TestDataSet, ZTestDataSet
 from ..data.merror_funcs import get_merror_func
-from numpy.random import default_rng
 
 
 def f(x: np.ndarray) -> np.ndarray:

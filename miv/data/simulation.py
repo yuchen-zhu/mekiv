@@ -8,17 +8,18 @@ X --> M
 X --> N
 """
 
-import numpy as np
-from numpy import concatenate as cat
-import pandas as pd
-import os
-from util import gen_discrete_factor
-import seaborn as sns
-import matplotlib.pyplot as plt
-from os.path import join as path_cat
 import argparse
+import os
 import pickle as pkl
+from os.path import join as path_cat
 from pathlib import Path
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
+from numpy import concatenate as cat
+from util import gen_discrete_factor
 
 PROJECT_ROOT = Path(__file__).resolve().parent / ".." / ".."
 
