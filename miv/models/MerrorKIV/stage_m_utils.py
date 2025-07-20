@@ -3,7 +3,13 @@ from numpy.random import default_rng
 from miv.data.data_class import StageMDataSet, StageMDataSetTorch
 import torch
 from torch import tensor
+import logging
+
 from miv.utils.util import dotdict
+from miv.models.MerrorKIV.get_median import get_median
+
+
+logger = logging.Logger(__name__)
 
 
 def sample_from_khat(sample_size, sigma):
@@ -38,7 +44,7 @@ def throw_away_outliers_with_labelrealparts(data2, outlier_cutoff_param):
     data2.Z = data2.Z[idx_select]
 
 
-def prepare_stage_M_data(raw_data2, rand_seed):
+def prepare_stage_2_data(raw_data2, rand_seed):
     """
     s1_data_and_args: stage 2 data inherits stage 1 training data and cme's
     """
@@ -50,12 +56,14 @@ def prepare_stage_M_data(raw_data2, rand_seed):
     return stage_m_data
 
 
-def create_stage_M_raw_data(n_chi, N1, M1, Z2, gamma_n, gamma_mn, sigmaN, KZ1Z2):
+def create_stage_2_raw_data(n_chi, N1, M1, Z2, gamma_n, gamma_mn):
+    sigmaN = get_median(N1)
+    
     # input: (n_Chi, z) --> output: y
     Chi = sample_from_khat(n_chi, sigmaN**0.5).reshape(
         -1, 1
     )  # because the computed sigmaN is actually sigma^2N
-    n, m = KZ1Z2.shape
+    m = Z2.shape[0]
 
     ### decompose e^{i\mathcal{X}n_i} ###
     # breakpoint()
@@ -97,3 +105,43 @@ def create_stage_M_raw_data(n_chi, N1, M1, Z2, gamma_n, gamma_mn, sigmaN, KZ1Z2)
     stage_m_raw_data = StageMDataSet(**raw_data2)
 
     return stage_m_raw_data
+
+
+def log_stage2_results(fitted_X, X_hidden, M, N):
+    logger.info("------ fitted X / N / M / (M+N)/2  compared with ground truth X -------")
+    logger.info(
+        (np.sum((fitted_X - X_hidden) ** 2) / fitted_X.shape[0])
+        ** 0.5
+        / np.std(X_hidden)
+    )
+    logger.info(
+        (
+            np.sum((N - X_hidden) ** 2)
+            / fitted_X.shape[0]
+        )
+        ** 0.5
+        / np.std(X_hidden)
+    )
+    logger.info(
+        (
+            np.sum((M - X_hidden) ** 2)
+            / fitted_X.shape[0]
+        )
+        ** 0.5
+        / np.std(X_hidden)
+    )
+    logger.info(
+        (
+            np.sum(
+                (
+                    1 / 2 * M
+                    + 1 / 2 * N
+                    - X_hidden
+                )
+                ** 2
+            )
+            / fitted_X.shape[0]
+        )
+        ** 0.5
+        / np.std(X_hidden)
+    )

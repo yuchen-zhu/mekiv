@@ -2,7 +2,7 @@ from typing import Dict, Any, Optional
 from pathlib import Path
 import numpy as np
 import logging
-from scipy.spatial.distance import cdist
+
 from sklearn.model_selection import train_test_split
 import torch
 from torch import tensor
@@ -14,20 +14,16 @@ from miv.utils.util import dotdict, make_dotdict
 from miv.data.data_class import TrainDataSet, TrainDataSetTorch, StageMDataSetTorch
 from miv.models.MerrorKIV.model import MerrorKIVModel
 from miv.models.MerrorKIV.stage_m_utils import (
-    create_stage_M_raw_data,
-    prepare_stage_M_data,
+    create_stage_2_raw_data,
+    prepare_stage_2_data,
 )
 from miv.models.MerrorKIV.stage_m import StageMModel, stage_m_train
 from miv.models.MerrorKIV.gaussian_gram import compute_gaussian_gram
+from miv.models.MerrorKIV.get_median import get_median
+from miv.models.MerrorKIV.stage_m_utils import log_stage2_results
 
 
 logger = logging.getLogger(__name__)
-
-
-def get_median(X) -> float:
-    dist_mat = cdist(X, X, "sqeuclidean")
-    res: float = np.median(a=dist_mat)
-    return res
 
 
 class MerrorKIVTrainer:
@@ -77,15 +73,105 @@ class MerrorKIVTrainer:
         Y1 = train_1st_data.Y
         n = N1.shape[0]
 
-        # get stageMerror data
+        # get stage2 data
+        M1 = train_1st_data.M
         Z2 = train_2nd_data.Z
 
-        # get stage2 data
+        # get stage3 data
         Y2 = train_2nd_data.Y
         m = Z2.shape[0]
 
+        gamma_mn, gamma_n = self.stage1(
+            N1=N1,
+            N2=N2,
+            MN1=MN1,
+            MN2=MN2,
+            Z1=Z1,
+            Z2=Z2
+        )
+        
+        logger.info("start stage 2 (measurement error correction)")
+
+        stageM_data = create_stage_2_raw_data(
+            n_chi=self.n_chi, 
+            N1=N1, 
+            M1=M1, 
+            Z2=Z2, 
+            gamma_n=gamma_n, 
+            gamma_mn=gamma_mn
+        )
+        stageM_data = prepare_stage_2_data(raw_data2=stageM_data, rand_seed=rand_seed)
+        stage1_MNZ = dotdict(
+            {
+                "M": M1, 
+                "N": N1, 
+                "Z": Z1, 
+                "sigmaZ": get_median(Z1)
+            }
+        )
+
+        stage_2_out = self.stage_2_main(
+            stageM_data=stageM_data,
+            stage1_MNZ=stage1_MNZ,
+            train_params=self.train_params,
+        )
+        lambda_x_final, fitted_X = stage_2_out.lambda_x_final, stage_2_out.fitted_x
+
+
+        log_stage2_results(
+            fitted_X=fitted_X,
+            X_hidden=train_1st_data.X_hidden,
+            M=train_1st_data.M,
+            N=train_1st_data.N
+        )
+
+        if train_1st_data.X_obs is not None:
+            fitted_X = np.concatenate([fitted_X, train_1st_data.X_obs], axis=-1)
+        if train_1st_data.covariate is not None:
+            fitted_X = np.concatenate([fitted_X, train_1st_data.covariate], axis=-1)
+
+        assert hasattr(self, 'KZ1Z1') and hasattr(self, 'KZ1Z2')
+        gamma_x = np.linalg.solve(self.KZ1Z1 + n * lambda_x_final * np.eye(n), self.KZ1Z2)
+        sigmaX = get_median(fitted_X)
+        KfittedX = compute_gaussian_gram(fitted_X, fitted_X, sigmaX)
+        W = KfittedX.dot(gamma_x)
+
+        logger.info("end stage 2 (measurement error correction)")
+
+        logger.info("start stage3")
+
+        if isinstance(self.xi, list):
+            # breakpoint()
+            self.xi = np.exp(np.linspace(self.xi[0], self.xi[1], 50))
+            alpha, xi = self.stage3_tuning(W, KfittedX, Y1, Y2)
+            self.xi = xi
+        else:
+            alpha = np.linalg.solve(W.dot(W.T) + m * self.xi * KfittedX, W.dot(Y2))
+
+        logger.info("end stage3")
+
+        logger.info("start evaluation")
+        mdl = MerrorKIVModel(fitted_X=fitted_X, alpha=alpha, sigma=sigmaX)
+        test_input = test_data.X_all
+        if test_data.covariate is not None:
+            test_input = np.concatenate([test_input, test_data.covariate], axis=-1)
+        Y_struct = test_data.Y_struct
+
+        mse, preds = mdl.evaluate(test_data=test_data)
+        return mse, test_input, preds, Y_struct
+    
+
+    def stage1(self, N1, N2, MN1, MN2, Z1, Z2):
+        """
+        
+        :return gamma_mn: 
+        :return gamma_n:
+        """
+
         logger.info("start stage1")
 
+        n = N1.shape[0]
+        
         sigmaN = get_median(N1)
         sigmaMN = get_median(MN1)
         sigmaZ = get_median(Z1)
@@ -116,95 +202,16 @@ class MerrorKIVTrainer:
         else:
             self.lambda_n_final = self.lambda_n_inits
             gamma_n = np.linalg.solve(KZ1Z1 + n * self.lambda_n_final * np.eye(n), KZ1Z2)
-
+            
+        logger.info("saving KZ1Z1 and KZ1Z2 for later use.")
+        self.KZ1Z1 = KZ1Z1
+        self.KZ1Z2 = KZ1Z2
+        
         logger.info("end stage 1")
-        logger.info("start stage merror")
-
-        # get stageM data
-        M1 = train_1st_data.M
-        stageM_data = create_stage_M_raw_data(
-            self.n_chi, N1, M1, Z2, gamma_n, gamma_mn, sigmaN, KZ1Z2
-        )
-        stageM_data = prepare_stage_M_data(raw_data2=stageM_data, rand_seed=rand_seed)
-        stage1_MNZ = dotdict({"M": M1, "N": N1, "Z": Z1, "sigmaZ": sigmaZ})
-
-        stage_m_out = self.stage_2_main(
-            stageM_data=stageM_data,
-            stage1_MNZ=stage1_MNZ,
-            train_params=self.train_params,
-        )
-        lambda_x_final, fitted_X = stage_m_out.lambda_x_final, stage_m_out.fitted_x
-
-        logger.info("------ fitted X / N / M / (M+N)/2  compared with ground truth X -------")
-        logger.info(
-            (np.sum((fitted_X - train_1st_data.X_hidden) ** 2) / fitted_X.shape[0])
-            ** 0.5
-            / np.std(train_1st_data.X_hidden)
-        )
-        logger.info(
-            (
-                np.sum((train_1st_data.N - train_1st_data.X_hidden) ** 2)
-                / fitted_X.shape[0]
-            )
-            ** 0.5
-            / np.std(train_1st_data.X_hidden)
-        )
-        logger.info(
-            (
-                np.sum((train_1st_data.M - train_1st_data.X_hidden) ** 2)
-                / fitted_X.shape[0]
-            )
-            ** 0.5
-            / np.std(train_1st_data.X_hidden)
-        )
-        logger.info(
-            (
-                np.sum(
-                    (
-                        1 / 2 * train_1st_data.M
-                        + 1 / 2 * train_1st_data.N
-                        - train_1st_data.X_hidden
-                    )
-                    ** 2
-                )
-                / fitted_X.shape[0]
-            )
-            ** 0.5
-            / np.std(train_1st_data.X_hidden)
-        )
-
-        if train_1st_data.X_obs is not None:
-            fitted_X = np.concatenate([fitted_X, train_1st_data.X_obs], axis=-1)
-        if train_1st_data.covariate is not None:
-            fitted_X = np.concatenate([fitted_X, train_1st_data.covariate], axis=-1)
-
-        gamma_x = np.linalg.solve(KZ1Z1 + n * lambda_x_final * np.eye(n), KZ1Z2)
-        sigmaX = get_median(fitted_X)
-        KfittedX = compute_gaussian_gram(fitted_X, fitted_X, sigmaX)
-        W = KfittedX.dot(gamma_x)
-
-        logger.info("end stageM")
-        logger.info("start stage2")
-
-        if isinstance(self.xi, list):
-            # breakpoint()
-            self.xi = np.exp(np.linspace(self.xi[0], self.xi[1], 50))
-            alpha, xi = self.stage3_tuning(W, KfittedX, Y1, Y2)
-            self.xi = xi
-        else:
-            alpha = np.linalg.solve(W.dot(W.T) + m * self.xi * KfittedX, W.dot(Y2))
-
-        logger.info("end stage2")
-
-        mdl = MerrorKIVModel(fitted_X=fitted_X, alpha=alpha, sigma=sigmaX)
-        test_input = test_data.X_all
-        if test_data.covariate is not None:
-            test_input = np.concatenate([test_input, test_data.covariate], axis=-1)
-        Y_struct = test_data.Y_struct
-
-        mse, preds = mdl.evaluate(test_data=test_data)
-        return mse, test_input, preds, Y_struct
-
+        
+        return gamma_mn, gamma_n
+    
+        
     def stage1_tuning(self, KX1X1, KX1X2, KZ1Z1, KZ1Z2, lambda_1):
         n = KX1X1.shape[0]
         gamma_list = [

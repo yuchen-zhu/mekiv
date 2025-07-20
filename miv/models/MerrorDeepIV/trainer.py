@@ -14,8 +14,8 @@ from miv.utils.util import dotdict, make_dotdict
 from miv.data.data_class import TrainDataSet, TrainDataSetTorch, StageMDataSetTorch
 from miv.models.MerrorKIV.model import MerrorKIVModel
 from miv.models.MerrorKIV.stage_m_utils import (
-    create_stage_M_raw_data,
-    prepare_stage_M_data,
+    create_stage_2_raw_data,
+    prepare_stage_2_data,
 )
 from miv.models.MerrorKIV.stage_m import StageMModel, stage_m_train
 
@@ -135,10 +135,10 @@ class MerrorDeepIVTrainer:
 
         # get stageM data
         M1 = train_1st_data.M
-        stageM_data = create_stage_M_raw_data(
+        stageM_data = create_stage_2_raw_data(
             self.n_chi, N1, M1, Z2, gamma_n, gamma_mn, sigmaN, KZ1Z2
         )
-        stageM_data = prepare_stage_M_data(raw_data2=stageM_data, rand_seed=rand_seed)
+        stageM_data = prepare_stage_2_data(raw_data2=stageM_data, rand_seed=rand_seed)
         stage1_MNZ = dotdict({"M": M1, "N": N1, "Z": Z1, "sigmaZ": sigmaZ})
 
         stage_m_out = self.stage_M_main(
