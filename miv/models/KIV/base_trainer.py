@@ -23,7 +23,7 @@ class BaseKIVTrainer(abc.ABC):
         self.split_ratio = train_params["split_ratio"]
 
         # Initial hyperparameters
-        self.lambd_inits = train_params["lambda_inits"]
+        self.lambd_inits = train_params["lambda"]
         self.xi_inits = train_params["xi"]
 
         # Hyperparameter after tuning

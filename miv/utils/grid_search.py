@@ -1,12 +1,12 @@
 from itertools import product
-from typing import Any, Iterator
+from typing import Any, Iterator, Dict, Tuple
 
 __all__ = ["grid_search_dict"]
 
 
 def grid_search_dict(
-    org_params: dict[str, Any]
-) -> Iterator[tuple[str, dict[str, Any]]]:
+    org_params: Dict[str, Any]
+) -> Iterator[Tuple[str, Dict[str, Any]]]:
     """
     Iterate list in dict to do grid search.
 

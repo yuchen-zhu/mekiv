@@ -1,7 +1,7 @@
 import numpy as np
-from scipy.spatial.distance import cdist
 
 from miv.data.data_class import TestDataSet, ZTestDataSet
+from miv.utils import compute_gaussian_gram
 
 
 class KernelIVModel:
@@ -32,28 +32,11 @@ class KernelIVModel:
         self.Z_train = Z_train
         self.z_brac = z_brac
 
-    @staticmethod
-    def compute_gaussian_gram(XA, XB, sigma: float = 1):
-        """
-        Returns gaussian kernel matrix
-        Parameters
-        ----------
-        XA : np.ndarray[n_data1, n_dim]
-        XB : np.ndarray[n_data2, n_dim]
-        sigma : float
-
-        Returns
-        -------
-        mat: np.ndarray[n_data1, n_data2]
-        """
-        dist_mat = cdist(XA, XB, "sqeuclidean")
-        return np.exp(-0.5 * dist_mat / sigma)
-
     def predict(self, treatment: np.ndarray, covariate: np.ndarray):
         X = np.array(treatment, copy=True)
         if covariate is not None:
             X = np.concatenate([X, covariate], axis=1)
-        Kx = self.compute_gaussian_gram(X, self.X_train, self.sigma_x)
+        Kx = compute_gaussian_gram(X, self.X_train, self.sigma_x)
         return np.dot(Kx, self.alpha)
 
     def evaluate(self, test_data: TestDataSet):
@@ -62,8 +45,8 @@ class KernelIVModel:
 
     def predict_z(self, instrument: np.ndarray):
         Z = np.array(instrument, copy=True)
-        KX1X1 = self.compute_gaussian_gram(self.X_train, self.X_train, self.sigma_x)
-        KZ1z = self.compute_gaussian_gram(self.Z_train, Z, self.sigma_z)
+        KX1X1 = compute_gaussian_gram(self.X_train, self.X_train, self.sigma_x)
+        KZ1z = compute_gaussian_gram(self.Z_train, Z, self.sigma_z)
         gamma_z = np.linalg.solve(self.z_brac, KZ1z)
         W_z = KX1X1.dot(gamma_z)
         pred_z = self.alpha.T.dot(W_z)

@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, Dict
 
 import numpy as np
 import ray
@@ -35,8 +35,8 @@ def get_trainer(alg_name: str):
 
 def run_one(
     alg_name: str,
-    data_param: dict[str, Any],
-    train_params: dict[str, Any],
+    data_param: Dict[str, Any],
+    train_params: Dict[str, Any],
     experiment_id: int,
 ):
     train_class = get_trainer(alg_name)
@@ -50,7 +50,7 @@ def run_one(
 
 def experiments(
     alg_name: str,
-    configs: dict[str, Any],
+    configs: Dict[str, Any],
     dump_dir: Path,
     num_cpus: int,
     num_gpus: Optional[int],
